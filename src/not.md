@@ -46,10 +46,9 @@
 	- .NET Endpointleri için yazılmış olan **Carter** kütüphanesini projeye dahil ettik.
 	- Oluşturduğumuz CreateProductEndpoint sınıfına, ICarterModule interface'ini implement ettik.
 	- Mapping işlemi için **Mapster** kütüphanesini kurduk ve Adapt metodu ile mapleme işlemini gerçekleştirip response döndürdük.
+	- Handler sınıfımıza **IDocumentSession**'dan bir örnek enjekte ettik. Bu sayede Marten kütüphanesinin sunmuş olduğu özelliklere erişebildik. Store metodu ile DB'ye ekleme işlemi yaptık ve SaveChangesAsync metodu ile de DB'de yaptığımız bu yeniliği kaydettik.
 	
 1. Serviste yaygın bir şekilde kullanacağımız kütüphanelerin entegrasyonunu kolaylaştırmak için **GlobalUsing** adında bir sınıf tanımlayıp kütüphanelerin kullanımını globalize ettik.
-
-1. Handler sınıfımıza **IDocumentSession**'dan bir örnek enjekte ettik. Bu sayede Marten kütüphanesinin sunmuş olduğu özelliklere erişebildik. Store metodu ile DB'ye ekleme işlemi yaptık ve SaveChangesAsync metodu ile de DB'de yaptığımız bu yeniliği kaydettik.
 
 1. Projemize ait bir **docker-compose** projesi oluşturduk. Bunu yapmak için projeye sağ tıklayıp Container Orchestrator Support'tan Linux'u seçip onayladık.
 
@@ -70,5 +69,6 @@
 | template1 | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/postgres      +|
 |           |          |          |                 |            |            |            |           | postgres=CTc/postgres |
 
-   8. ```\c CatalogDb``` komutu ile CatalogDb'ye bağlanırız. Şuan bir tablo bulunmadığı için boş gözükecektir. Marten bizim yerimize code-first yaklaşımı ile tüm yapıyı oluşturacaktır.
-   9. Postman üzerinden istek atılır. *5432 portu daha önce kullanımda olduğu için sıkça hata alındı. Sonuç olarak düzeltildi* 
+   8. ```\c CatalogDb``` komutu ile CatalogDb'ye bağlanırız. Şuan bir tablo bulunmadığı için DB boş gözükecektir. Veri girişinin ardından Marten kütüphanesi bizim yerimize code-first yaklaşımı ile tüm yapıyı oluşturacaktır.
+   9. Postman üzerinden istek atarız ve başarılı sonucu alırız. *5432 portu daha önce kullanımda olduğu için sıkça hata alındı. Sonuç olarak düzeltildi* 
+   10. DB'de ```\d``` komutunu çağırarak Marten tarafından oluşturulmuş olan tablomuzu görebilir ve tablo üzerinde SQL sorguları çağırabiliriz.
