@@ -37,3 +37,6 @@
 1. **IQueryHandler** interface'inin oluşturulması
 
    - ```public interface IQueryHandler<in TQuery, TResponse> : IRequestHandler<TQuery, TResponse> where TQuery : IQuery<TResponse>``` </br></br> Bir önceki adımın benzeri bir tanımlama uyguladık. TRequest parametresi olarak IQuery alan ve notnull constraint'ine sahip bir interface tanımladık.
+
+ 1. **IEntityBuilder** interface'inin oluşturulması ve implementasyonu; 
+	- Burada eğitimin haricinde kendim bir şeyler kattım. Reflection kullanarak generic bir entity builder oluşturdum ve bu şekilde command'dan entity üretimini sağladım. Custom mapping gibi de düşünebiliriz.
