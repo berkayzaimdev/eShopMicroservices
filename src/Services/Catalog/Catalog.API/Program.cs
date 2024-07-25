@@ -1,8 +1,6 @@
-using System.Reflection;
-
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddCarter();
+builder.Services.AddCarter(); // problemin çözümü için carter kütüphanesini buildingblocks yerine catalog.api projesine kurduk
 builder.Services.AddMediatR(config =>
 {
     config.RegisterServicesFromAssembly(typeof(Program).Assembly);
@@ -12,4 +10,4 @@ var app = builder.Build();
 
 app.MapCarter();
 
-app.Run();
+await app.RunAsync();
