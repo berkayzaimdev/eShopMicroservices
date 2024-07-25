@@ -1,9 +1,7 @@
-﻿using BuildingBlocks.Abstractions;
-using BuildingBlocks.Concretes;
+﻿using BuildingBlocks.Concretes;
 using BuildingBlocks.CQRS.Handlers;
 using BuildingBlocks.CQRS.Requests;
 using Catalog.API.Models;
-using MediatR;
 
 namespace Catalog.API.Products.CreateProduct
 {

@@ -40,3 +40,11 @@
 
  1. **IEntityBuilder** interface'inin oluşturulması ve implementasyonu; 
 	- Burada eğitimin haricinde kendim bir şeyler kattım. Reflection kullanarak generic bir entity builder oluşturdum ve bu şekilde command'dan entity üretimini sağladım. Custom mapping gibi de düşünebiliriz.
+
+ 1. **CreateProductEndpoint** sınıfının oluşturulması; 
+	- Bu serviste minimal API ile çalışacağımız için endpoint'lerden faydalanacağız.
+	- .NET Endpointleri için yazılmış olan **Carter** kütüphanesini projeye dahil ettik.
+	- Oluşturduğumuz CreateProductEndpoint sınıfına, ICarterModule interface'ini implement ettik.
+	- Mapping işlemi için **Mapster** kütüphanesini kurduk ve Adapt metodu ile mapleme işlemini gerçekleştirip response döndürdük.
+	
+1. Serviste yaygın bir şekilde kullanacağımız kütüphanelerin entegrasyonunu kolaylaştırmak için **GlobalUsing** adında bir sınıf tanımlayıp kütüphanelerin kullanımını globalize ettik.
