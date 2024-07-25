@@ -73,4 +73,4 @@
    9. Postman üzerinden istek atarız ve başarılı sonucu alırız. *5432 portu daha önce kullanımda olduğu için sıkça hata alındı. Sonuç olarak düzeltildi* 
    10. DB'de ```\d``` komutunu çağırarak Marten tarafından oluşturulmuş olan tablomuzu görebilir ve tablo üzerinde SQL sorguları çağırabiliriz.
 
-  1. **GetProductHandler** ve **GetProductEndpoint** sınıfının oluşturulması
+  1. **GetProduct, GetProductById** operasyonları için Handler ve Endpoint sınıflarının oluşturulması
