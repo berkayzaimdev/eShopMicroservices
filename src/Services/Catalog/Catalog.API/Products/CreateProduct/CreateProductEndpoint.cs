@@ -1,6 +1,4 @@
-﻿using BuildingBlocks.CQRS.Requests;
-
-namespace Catalog.API.Products.CreateProduct
+﻿namespace Catalog.API.Products.CreateProduct
 {
     public record CreateProductRequest(string Name, ICollection<string> Category, string Description, string ImageFile, decimal Price) : ICommand<CreateProductResult>;
     public record CreateProductResponse(Guid Id);

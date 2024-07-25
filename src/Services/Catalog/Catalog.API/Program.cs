@@ -1,10 +1,19 @@
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddCarter(); // problemin çözümü için carter kütüphanesini buildingblocks yerine catalog.api projesine kurduk
+
+var assembly = typeof(Program).Assembly;
+
 builder.Services.AddMediatR(config =>
 {
-    config.RegisterServicesFromAssembly(typeof(Program).Assembly);
+    config.RegisterServicesFromAssembly(assembly);
 });
+
+builder.Services.AddCarter(); // problemin Ã§Ã¶zÃ¼mÃ¼ iÃ§in carter kÃ¼tÃ¼phanesini buildingblocks yerine catalog.api projesine kurduk
+
+builder.Services.AddMarten(opts =>
+{
+    opts.Connection(builder.Configuration.GetConnectionString("Database")!);
+}).UseLightweightSessions(); // performans artÄ±ÅŸÄ± saÄŸlar
 
 var app = builder.Build();
 
