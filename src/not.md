@@ -33,3 +33,7 @@
    - ```public interface ICommandHandler<in TCommand, TResponse> : IRequestHandler<TCommand, TResponse> where TCommand : ICommand<TResponse>``` </br></br> Burada CQRS'e ait bir interface olan IRequestHandler'dan kalıtım aldık. TCommand generic yapısının ancak ve ancak, kendi oluşturduğumuz ICommand arayüzüne eşit olmasını sağladık. Ayrıca notnull constraint ekleyerek  null dönememesini sağladık.
 
    - ```public interface ICommandHandler<in TCommand> : ICommandHandler<TCommand, Unit> where TCommand : ICommand<Unit>``` </br></br> Az evvel oluşturmuş olduğumuz **ICommandHandler** interface'inin farklı bir türünü tanımladık. Bu generic tür; geriye hiçbir şey dönmez ve **TCommand** olarak Unit dönüşlü bir **ICommand** kabul eder.
+
+1. **IQueryHandler** interface'inin oluşturulması
+
+   - ```public interface IQueryHandler<in TQuery, TResponse> : IRequestHandler<TQuery, TResponse> where TQuery : IQuery<TResponse>``` </br></br> Bir önceki adımın benzeri bir tanımlama uyguladık. TRequest parametresi olarak IQuery alan ve notnull constraint'ine sahip bir interface tanımladık.
