@@ -115,3 +115,51 @@ internal class CreateProductCommandHandler
 ```
 
 - Bu durumu tekrarlı bir şekilde uygulamak kod kalabalığını ve bakım zorluğunu beraberinde getirecektir.
+
+- Bunu önlemek için ValidationBehavior adında bu işlemi her request için yönetme kabiliyetine sahip bir sınıf oluşturduk.
+  1. Type tanımlaması
+
+      ```csharp
+      public class ValidationBehavior<TRequest, TResponse> (IEnumerable<IValidator<TRequest>> Validators)
+      : IPipelineBehavior<TRequest, TResponse>
+      where TRequest : ICommand<TResponse> 
+      ```
+
+      <ul style="list-style-type:square;">
+        <li>Bu type MediatR'ün bir interface'i olan IPipelineBehaviordan kalıtım alıyor.</li>
+        <li>Request alıp geriye Response dönmeyi belirten bir generic yapı olarak tanımlamayı yaptık.</li>
+        <li>Parametre olarak Request'in tüm validator'larını IEnumerable şeklinde alıyoruz.</li>
+        <li>Request'i sadece ICommand'a eşit olmak üzere belirliyoruz. Çünkü query'lerde validation operasyonuna ihtiyacımız henüz yok.</li>
+      </ul>
+  
+  1. İmplementasyon
+ 
+
+        ```
+        public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse>/next, CancellationToken cancellationToken)
+        {
+            var context = new ValidationContext<TRequest>(request);
+
+            var validationResults = await Task.WhenAll(Validators.Select(v => v.ValidateAsync(context, cancellationToken)));
+
+            var failures = validationResults
+                .Where(r => r.Errors.Any())
+                .SelectMany(r => r.Errors)
+                .ToList();
+
+            if(failures.Any())
+            {
+                throw new ValidationException(failures);
+            }
+
+            return await next();
+        }
+        ```
+
+      <ul style="list-style-type:square;">
+        <li>Öncelikle request'in valide edilecek halini ifade eden bir ValidationContext instance'ı oluşturuyoruz.</li>
+        <li>Bu instance'ı tüm Validator'ları dönerken kullandığımız ValidateAsync'de parametre olarak veriyoruz.</li>
+        <li>Metot sonucunu itere ediyoruz ve herhangi bir hata oluştuysa bu hataları bir listeye alıyoruz.</li>
+        <li>Eğer hata varsa programın devam etmesini önlemek için hata fırlatıyoruz, hata yoksa ise pipeline'ın bir sonraki bileşeninden devam ediyoruz.</li>
+      </ul>
+
