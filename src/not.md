@@ -53,9 +53,9 @@
 1. Projemize ait bir **docker-compose** projesi oluşturduk. Bunu yapmak için projeye sağ tıklayıp Container Orchestrator Support'tan Linux'u seçip onayladık.
 
    1. PostgreSQL veri tabanına bağlanacağımız için docker ayarları burada kritik önem arz ediyor. (buralar tekrar edilecek)
-   1. docker-compose.yaml ve docker-compose.override.yaml dosyalarını PostgreSQL bilgilerini içerecek şekilde düzenledik ve kaydettik.
+   1. **docker-compose.yaml** ve **docker-compose.override.yaml** dosyalarını PostgreSQL bilgilerini içerecek şekilde düzenledik ve kaydettik.
    1. Proje ortamını dockerize etmek için docker-compose projesini Visual Studio'dan ayağa kaldırıyoruz. Tüm imajlar ve çevre değişkenleri otomatik olarak yükleniyor. (Çalışmadı, VS'i tekrar başlatınca düzeldi)
-   1. Docker Desktop'tan container detaylarına baktığımızda artık PostgreSQL'i **catalogdb** ismi ile görebilmekteyiz. Terminalden **docker ps** komutu ile container'ın çalıştığını doğruladık.
+   1. Docker Desktop'tan container detaylarına baktığımızda artık PostgreSQL'i **catalogdb** ismi ile görebilmekteyiz. Terminalden ```docker ps``` komutu ile container'ın çalıştığını doğruladık.
    1. ```docker exec -it ;id; bash``` komutu ile PostgreSQL'in bulunduğu container'daki bash script'e ulaştık.
    1. Bulunduğumuz bash'te ```psql -U postgres``` komutunu çağırarak PostgreSQL'e has olan shell script'e ulaştık.
    1. ```\l``` ile tüm db'leri listeleriz.
@@ -73,4 +73,4 @@
    9. Postman üzerinden istek atarız ve başarılı sonucu alırız. *5432 portu daha önce kullanımda olduğu için sıkça hata alındı. Sonuç olarak düzeltildi.* 
    10. DB'de ```\d``` komutunu çağırarak Marten tarafından oluşturulmuş olan tablomuzu görebilir ve tablo üzerinde SQL sorguları çağırabiliriz.
 
-  1. **GetProduct, GetProductById, GetProductByCategory, UpdateProduct** operasyonları için Handler ve Endpoint sınıflarının oluşturulması
+  1. **GetProduct, GetProductById, GetProductByCategory, UpdateProduct, DeleteProduct** operasyonları için Handler ve Endpoint sınıflarının oluşturulması

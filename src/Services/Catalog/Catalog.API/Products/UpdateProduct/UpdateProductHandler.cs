@@ -12,7 +12,7 @@ internal class UpdateProductCommandHandler
 {
     public async Task<UpdateProductResult> Handle(UpdateProductCommand command, CancellationToken cancellationToken)
     {
-        logger.LogInformation("UpdateProductCommand.Handle called with {@Command}", command);
+        logger.LogInformation("UpdateProductCommandHandler.Handle called with {@Command}", command);
 
         var product = await session.LoadAsync<Product>(command.Id, cancellationToken);
 
@@ -24,7 +24,7 @@ internal class UpdateProductCommandHandler
         UpdateProperties(product, command);
 
         session.Update(product);
-        await session.SaveChangesAsync();
+        await session.SaveChangesAsync(cancellationToken);
 
         return new UpdateProductResult(true);
     }
