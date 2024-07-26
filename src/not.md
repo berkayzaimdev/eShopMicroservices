@@ -82,6 +82,8 @@
 
 - **Cross-Cutting Concerns**, request ve response geçişlerinde farklı operasyonları sırayla yürüterek daha modüler bir ilerleme ortaya koymamızı sağlayan bir yaklaşımdır.
 - Validation, Caching, Logging gibi ara operasyonları daha kolay yönetilebilir ve uygulanabilir hale getirmeyi sağlayan CCC'yi uygulamak için **MediatR Pipeline Behaviors** üzerinden bazı implementasyonlarda bulunacağız.
+
+#### Validation
 - Öncelikle bir Validator tanımlayalım ve validate durumunu CCC kullanmaksızın Handle metodunda ele alalım;
 
 ``` 
@@ -163,3 +165,38 @@ internal class CreateProductCommandHandler
         <li>Eğer hata varsa programın devam etmesini önlemek için hata fırlatıyoruz, hata yoksa ise pipeline'ın bir sonraki bileşeninden devam ediyoruz.</li>
       </ul>
 
+#### Exception Handling
+
+1. Exception yönetimini proje bazında yönetebilmek için serviste bulunan Program.cs'e Exception Handler yazdık. Bu sayede istek işlenirken herhangi bir hata gelip gelmediğini kontrol edebildik ve eğer hata varsa bu hatayı response olarak döndürdük;
+
+    ```csharp
+    app.UseExceptionHandler(exceptionHandlerApp =>
+    {
+        exceptionHandlerApp.Run(async context =>
+        {
+            var exception = context.Features.Get<IExceptionHandlerPathFeature>()?.Error; // isteğin path'i ve eğer varsa exception
+
+            if (exception is null) // exception yoksa dönüş yap
+            {
+                return;
+            }
+
+            var problemDetails = new ProblemDetails
+            {
+                Title = exception.Message,
+                Status = StatusCodes.Status500InternalServerError,
+                Detail = exception.StackTrace
+            };
+            var logger = context.RequestServices.GetRequiredService<ILogger<Program>>(); // logger'ı servislerden aldık
+            logger.LogError(exception, exception.Message);
+
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            context.Response.ContentType = "application/problem+json";
+
+            await context.Response.WriteAsJsonAsync(problemDetails);
+        });
+    });
+    ```
+2. Global Exception Handling'e hazırlık için her nesne ve durum için kullanabileceğimiz Custom Exception'lar tanımladık. (BadRequest, NotFound, InternalServer exceptions)
+
+3. 

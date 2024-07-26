@@ -32,7 +32,7 @@ internal class UpdateProductCommandHandler
 
         if (product == null)
         {
-            throw new ProductNotFoundException();
+            throw new ProductNotFoundException(command.Id);
         }
 
         UpdateProperties(product, command);
