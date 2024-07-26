@@ -80,7 +80,38 @@
 
 ### Cross-Cutting Concerns uygulaması
 
-1. asdsad
-1. asdsad
-1. asdsad
+- **Cross-Cutting Concerns**, request ve response geçişlerinde farklı operasyonları sırayla yürüterek daha modüler bir ilerleme ortaya koymamızı sağlayan bir yaklaşımdır.
+- Validation, Caching, Logging gibi ara operasyonları daha kolay yönetilebilir ve uygulanabilir hale getirmeyi sağlayan CCC'yi uygulamak için **MediatR Pipeline Behaviors** üzerinden bazı implementasyonlarda bulunacağız.
+- Öncelikle bir Validator tanımlayalım ve validate durumunu CCC kullanmaksızın Handle metodunda ele alalım;
 
+``` 
+public class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
+{
+    public CreateProductCommandValidator()
+    {
+        RuleFor(x => x.Name).NotEmpty().WithMessage("Name is required");
+        RuleFor(x => x.Category).NotEmpty().WithMessage("Category is required");
+        RuleFor(x => x.ImageFile).NotEmpty().WithMessage("ImageFile is required");
+        RuleFor(x => x.Price).GreaterThan(0).WithMessage("Price must be greater than 0");
+    }
+}
+
+internal class CreateProductCommandHandler
+    (IDocumentSession session, IValidator<CreateProductCommand> validator)
+    : ICommandHandler<CreateProductCommand, CreateProductResult> // sadece o assembly'de geçerli olması için internal yaptık çünkü başka bir yerde çağırmayacağız
+{
+    public async Task<CreateProductResult> Handle(CreateProductCommand command, CancellationToken cancellationToken)
+    {
+        var result = await validator.ValidateAsync(command, cancellationToken);
+        var errors = result.Errors.Select(x => x.ErrorMessage).ToList();
+        if (errors.Any())
+        {
+            throw new ValidationException(errors.FirstOrDefault());
+        }
+        .
+        .
+    }
+}
+```
+
+- Bu durumu tekrarlı bir şekilde uygulamak kod kalabalığını ve bakım zorluğunu beraberinde getirecektir.
