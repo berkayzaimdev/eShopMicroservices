@@ -128,7 +128,7 @@ internal class CreateProductCommandHandler
       ```
 
       <ul style="list-style-type:square;">
-        <li>Bu type MediatR'ün bir interface'i olan IPipelineBehaviordan kalıtım alıyor.</li>
+        <li>Bu type MediatR'ün bir interface'i olan <b>IPipelineBehavior</b>'dan kalıtım alıyor.</li>
         <li>Request alıp geriye Response dönmeyi belirten bir generic yapı olarak tanımlamayı yaptık.</li>
         <li>Parametre olarak Request'in tüm validator'larını IEnumerable şeklinde alıyoruz.</li>
         <li>Request'i sadece ICommand'a eşit olmak üzere belirliyoruz. Çünkü query'lerde validation operasyonuna ihtiyacımız henüz yok.</li>
@@ -199,4 +199,79 @@ internal class CreateProductCommandHandler
     ```
 2. Global Exception Handling'e hazırlık için her nesne ve durum için kullanabileceğimiz Custom Exception'lar tanımladık. (BadRequest, NotFound, InternalServer exceptions)
 
-3. 
+3. Global Exception Handling'i opere edecek sınıfımız olan CustomExceptionHandler'ı oluşturduk.
+
+    ```csharp
+    public class CustomExceptionHandler 
+        (ILogger<CustomExceptionHandler> logger)
+        : IExceptionHandler
+    {
+        public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
+        {
+            logger.LogError(
+                "Error Message: {ExceptionMessage}, Time of occurrence {Time}", 
+                exception.Message, DateTime.UtcNow); // hata mesajını ve hata tarihini log'a yazdır
+
+            (string Detail, string Title, int StatusCode) details = exception switch // TODO: burada daha etkin bir yapı kullanabilir miydik bilmiyorum
+            {
+                InternalServerException =>
+                (
+                    exception.Message,
+                    exception.GetType().Name,
+                    httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError
+                ),
+                ValidationException =>
+                (
+                    exception.Message,
+                    exception.GetType().Name,
+                    httpContext.Response.StatusCode = StatusCodes.Status400BadRequest
+                ),
+                BadRequestException =>
+                (
+                    exception.Message,
+                    exception.GetType().Name,
+                    httpContext.Response.StatusCode = StatusCodes.Status400BadRequest
+                ),
+                NotFoundException =>
+                (
+                    exception.Message,
+                    exception.GetType().Name,
+                    httpContext.Response.StatusCode = StatusCodes.Status404NotFound
+                ),
+                _ =>
+                (
+                    exception.Message,
+                    exception.GetType().Name,
+                    httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError
+                )
+            };
+
+            var problemDetails = new ProblemDetails
+            {
+                Title = details.Title,
+                Detail = details.Detail,
+                Status = details.StatusCode,
+                Instance = httpContext.Request.Path
+            };
+
+            problemDetails.Extensions.Add("traceId", httpContext.TraceIdentifier);
+
+            if (exception is ValidationException validationException) 
+            {
+                problemDetails.Extensions.Add("ValidationErrors", validationException.Errors); // Validasyona dair hata(lar) oluştuysa bunu ValidationErrors başlığına ekle
+            }
+
+            await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken: cancellationToken); // response'u hata bilgisi ile doldur
+            return true;
+        }
+    }
+
+    ```
+
+    <ul style="list-style-type:square;">
+    <li>Oluşturduğumuz sınıfa, .NET'e dahili olan ve hata yönetimini sağlayan <b>IExceptionHandler</b> sınıfını implemente ediyoruz.</li>
+    <li>Hata başlığı, detayı ve durum kodunu tutacak bir tuple tanımlıyoruz.</li>
+    <li>Bu tuple'ı, uyguladığımız switch koşulunda dolduruyoruz.</li>
+    <li>Hazır ProblemDetails sınıfından, tuple'daki değerleri kullanarak bir instance oluşturuyoruz. Eğer bu hata bir validasyon hatasıysa bu hata/ların listesini de ekliyoruz.</li>
+    <li>Elde ettiğimiz ProblemDetails nesnesini, response içeriğine yazıyoruz.</li>
+    </ul>
