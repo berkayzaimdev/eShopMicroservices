@@ -10,6 +10,8 @@ builder.Services.AddMediatR(config =>
 
 builder.Services.AddCarter(); // problemin çözümü için carter kütüphanesini buildingblocks yerine catalog.api projesine kurduk
 
+builder.Services.AddValidatorsFromAssembly(assembly);
+
 builder.Services.AddMarten(opts =>
 {
     opts.Connection(builder.Configuration.GetConnectionString("Database")!);

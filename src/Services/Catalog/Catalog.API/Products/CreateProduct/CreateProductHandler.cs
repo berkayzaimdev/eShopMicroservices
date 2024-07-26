@@ -1,5 +1,4 @@
 ﻿using BuildingBlocks.Concretes;
-using FluentValidation;
 
 namespace Catalog.API.Products.CreateProduct;
 
@@ -16,10 +15,19 @@ public class CreateProductCommandValidator : AbstractValidator<CreateProductComm
         RuleFor(x => x.Price).GreaterThan(0).WithMessage("Price must be greater than 0");
     }
 }
-internal class CreateProductCommandHandler(IDocumentSession session) : ICommandHandler<CreateProductCommand, CreateProductResult> // sadece o assembly'de geçerli olması için internal yaptık çünkü başka bir yerde çağırmayacağız
+internal class CreateProductCommandHandler
+    (IDocumentSession session, IValidator<CreateProductCommand> validator)
+    : ICommandHandler<CreateProductCommand, CreateProductResult> // sadece o assembly'de geçerli olması için internal yaptık çünkü başka bir yerde çağırmayacağız
 {
     public async Task<CreateProductResult> Handle(CreateProductCommand command, CancellationToken cancellationToken)
     {
+        var result = await validator.ValidateAsync(command, cancellationToken);
+        var errors = result.Errors.Select(x => x.ErrorMessage).ToList();
+        if (errors.Any())
+        {
+            throw new ValidationException(errors.FirstOrDefault());
+        }
+
         var builder = new EntityBuilder<CreateProductCommand, Product>();
 
         var product = builder.Build(command);
