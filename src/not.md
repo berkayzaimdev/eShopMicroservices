@@ -70,7 +70,7 @@
 |           |          |          |                 |            |            |            |           | postgres=CTc/postgres |
 
    8. ```\c CatalogDb``` komutu ile CatalogDb'ye bağlanırız. Şuan bir tablo bulunmadığı için DB boş gözükecektir. Veri girişinin ardından Marten kütüphanesi bizim yerimize code-first yaklaşımı ile tüm yapıyı oluşturacaktır.
-   9. Postman üzerinden istek atarız ve başarılı sonucu alırız. *5432 portu daha önce kullanımda olduğu için sıkça hata alındı. Sonuç olarak düzeltildi* 
+   9. Postman üzerinden istek atarız ve başarılı sonucu alırız. *5432 portu daha önce kullanımda olduğu için sıkça hata alındı. Sonuç olarak düzeltildi.* 
    10. DB'de ```\d``` komutunu çağırarak Marten tarafından oluşturulmuş olan tablomuzu görebilir ve tablo üzerinde SQL sorguları çağırabiliriz.
 
-  1. **GetProduct, GetProductById** operasyonları için Handler ve Endpoint sınıflarının oluşturulması
+  1. **GetProduct, GetProductById, GetProductByCategory** operasyonları için Handler ve Endpoint sınıflarının oluşturulması
