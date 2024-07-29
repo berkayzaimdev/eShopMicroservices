@@ -341,3 +341,9 @@ internal class CreateProductCommandHandler
     1. Bu yeni request'ı, mapping ile Query sınıfına eşitledik. Dolayısıyla aynı değişikliği bu sınıfta da yapmamız gerekti ve sınıfa PageNumber ve PageSize parametrelerini ekledik.
     1. Handler tarafında ```var products = await session.Query<Product>()
             .ToPagedListAsync(query.PageNumber ?? 1, query.PageSize ?? 10, cancellationToken);``` tanımlaması ile PagedList nesnesini elde ettik.
+
+
+### Health Check eklenmesi
+
+- Sadece Program.cs tarafını ayarlamamız bu ayarlama için yeterli. Projede DB kritik bir yer tuttuğu için DB odaklı bir kontrol yaptık. Bunu sağlamak için ise AddNpgSql metodundan faydalandık ve connection string'i vererek ilgili DB'yi kontrol etmesini belirttik.
+- Response'u JSON formatında ve daha okunaklı yazması için ise app konfigürasyonlarında options tanımladık ve burada, eklediğimiz UI kütüphanesini kullandık
