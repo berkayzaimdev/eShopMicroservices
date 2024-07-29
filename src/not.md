@@ -322,3 +322,15 @@ internal class CreateProductCommandHandler
     </ul>
 1. Oluşturduğumuz bu behavior'ı, ```config.AddOpenBehavior(typeof(LoggingBehavior<,>));``` kodu ile Program.cs'te MediatR ayarlarına register ediyoruz. 
 
+
+
+### Data Seeding uygulaması
+
+- Marten kütüphanesi ile Data Seeding eklemek için şu adımları gerçekleştirdik;
+    1. CatalogInitialData ismi verilen bir sınıf oluşturduk ve bu sınıfa Marten kütüphanesinde bulunan IInitialData interface'ini implemente ettik.
+    1. Bir session oluşturduk ve tabloda veri var mı, yok mu kontrol ettik.
+    1. Veri yoksa oluşturduğumuz Product'ları tabloya ekledik ve değişiklikleri kaydettik
+    1. Oluşturduğumuz bu sınıfı ```builder.Services.InitializeMartenWith<CatalogInitialData>();``` kodu ile Marten konfigürasyonuna dahil ettik.
+
+
+### Pagination eklenmesi
