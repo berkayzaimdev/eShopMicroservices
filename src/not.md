@@ -396,3 +396,45 @@ internal class CreateProductCommandHandler
 - Bu servis genel itibariyle kullanılan veritabanı, bileşenler ve mimari olarak **Catalog** servisine benzerlik gösterecektir.
 - Catalog servisindeki bileşenler dışında; gRPC, Redis ve RabbitMQ araçları kullanılacaktır.
 - Tasarım desenlerinde ise **Repository pattern** uygulanacaktır.
+
+### Servise ait DB'nin docker-compose'a Dahil Edilmesi 
+
+1. Halihazırda var olan docker-compose projemizde bulunan docker-compose.yml dosyasında, **services** ve **volumes** field'larına basketdb eklenir;
+```
+services:
+  catalogdb:
+    image: postgres
+
+  basketdb:
+    image: postgres
+
+.
+.
+
+volumes:
+  postgres_catalog:
+  postgres_basket:
+```
+
+2. Aynı projenin docker-compose.override.yml dosyasında da benzer değişikliklerde bulunulur; (port numarasının farklı olmasına dikkat ediyoruz) 
+
+```
+services:
+  catalogdb:
+    .
+    .
+
+  basketdb:
+    container_name: basketdb
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=BasketDb
+    restart: always
+    ports:
+        - "5433:5432"
+    volumes:
+      - postgres_basket:/var/lib/postgresql/data/ 
+```
+
+3. docker-compose projesi ayağa kaldırılır. BasketDb'yi gözlemleyebiliyorsak işlem başarılı demektir. (connection string'in uyumlu olması şarttır)
