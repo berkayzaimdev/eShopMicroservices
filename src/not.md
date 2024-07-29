@@ -334,3 +334,10 @@ internal class CreateProductCommandHandler
 
 
 ### Pagination eklenmesi
+
+- Pagination uygulamak için bir extension metot yazmak yerine Marten'in *ToPagedListAsync* metodunu kullandık. Metoda sadece sayfa numarasını ve sayfa eleman sayısını vererek; güncel sayfa, ilk/son sayfa, toplam eleman sayısı gibi verilere dönen PagedList instance'ından erişebiliyoruz. Şu şekilde bir uygulamaya gittik;
+
+    1. *GetProductsEndpoint* sınıfında parametresiz bir şekilde bulunan ve kullanılmayan GetProductsRequest sınıfına PageNumber ve PageSize adında iki yeni parametre ekledik.
+    1. Bu yeni request'ı, mapping ile Query sınıfına eşitledik. Dolayısıyla aynı değişikliği bu sınıfta da yapmamız gerekti ve sınıfa PageNumber ve PageSize parametrelerini ekledik.
+    1. Handler tarafında ```var products = await session.Query<Product>()
+            .ToPagedListAsync(query.PageNumber ?? 1, query.PageSize ?? 10, cancellationToken);``` tanımlaması ile PagedList nesnesini elde ettik.
