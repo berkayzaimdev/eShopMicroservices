@@ -274,4 +274,51 @@ internal class CreateProductCommandHandler
     <li>Bu tuple'ı, uyguladığımız switch koşulunda dolduruyoruz.</li>
     <li>Hazır ProblemDetails sınıfından, tuple'daki değerleri kullanarak bir instance oluşturuyoruz. Eğer bu hata bir validasyon hatasıysa bu hata/ların listesini de ekliyoruz.</li>
     <li>Elde ettiğimiz ProblemDetails nesnesini, response içeriğine yazıyoruz.</li>
+    <li>Son işlem olarak; oluşturduğumuz sınıfı Program.cs'te hem servis hem de uygulama tarafında konfigüre ediyoruz.</li>
     </ul>
+
+#### Logging
+
+1. Dikkat edersek, handler sınıflarımızın primary ctor'larının her birine ILogger sınıfından bir instance dahil ettik. Ve yine dikkat edersek, oluşturduğumuz her handler sınıfı için bunu yinelemek zorundayız. Dolayısıyla bu yol gereksiz bir kod tekrarına yol açar. Bunu önlemek için yine **MediatR Pipelive Behaviour** davranışından faydalanacağız.
+1. BuildingBlocks projesinde LoggingBehavior adında bir sınıf tanımlıyoruz;
+
+    ```csharp
+    public class LoggingBehavior<TRequest, TResponse> 
+        (ILogger<LoggingBehavior<TRequest, TResponse>> logger)
+        : IPipelineBehavior<TRequest, TResponse>
+        where TRequest : notnull, IRequest<TResponse>
+        where TResponse : notnull
+    {
+        public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+        {
+            logger.LogInformation("[START] Handle request={Request} - Response={Response} - RequestData{RequestData}", typeof(TRequest).Name, typeof(TResponse).Name, request);
+
+            var timer = new Stopwatch();
+            timer.Start();
+
+            var response = await next();
+
+            timer.Stop();
+            var timeTaken = timer.Elapsed;
+
+            if(timeTaken.Seconds > 3) // isteğin işlenmesi 3 saniyeden uzun sürmüşse
+            {
+                logger.LogWarning("[PERFORMANCE] The request {Request} took {TimeTaken} seconds.", typeof(TRequest).Name, timeTaken.Seconds);
+            }
+
+            logger.LogInformation("[END] Handled {Request} with {Response}", typeof(TRequest).Name, typeof(TResponse).Name);
+            return response;
+        }
+    }
+    ```
+    <ul style="list-style-type:square;">
+    <li>Oluşturduğumuz sınıfa MediatR sınıfının interface'i olan IPipelineBehavior'u implemente ediyoruz ki, bir middleware davranışı gösterilebilsin..</li>
+    <li>Bu sınıfın primary ctor'una ILogger interface'inden bir instance ekliyoruz. Bu, logging işlemini tek bir noktadan uygulamamıza yarayacak.</li>
+    <li>İstek geldiği an, LogInformation metodunu uygulayarak isteği logluyoruz.</li>
+    <li>Bu loglama işleminden sonra, isteğin ne kadar sürede işlendiğini hesaplamamızı sağlayacak olan timer adında bir değişken tanımlıyoruz. Bu değişken Stopwatch sınıfından bir instance teşkil ediyor. Response'u beklemeden önce de, timer'ı başlatıyoruz.</li>
+    <li>Response içeriğini var response = await next(); kod satırı ile bir değişkene aktarıyoruz.</li>
+    <li>Response'tan bir instance oluşur oluşmaz, timer'ı durduruyoruz. Geçen süre 3 saniyeden büyükse, bu durum bir performans sorunu teşkil ettiği için warning etiketiyle bu durumu logluyoruz.</li>
+    <li>Son olarak, response gönderilmeden hemen önce request'ın işlenmesinin bittiğini işaret edecek şekilde [END] belirteciyle bir loglama yapıyoruz</li>
+    </ul>
+1. Oluşturduğumuz bu behavior'ı, ```config.AddOpenBehavior(typeof(LoggingBehavior<,>));``` kodu ile Program.cs'te MediatR ayarlarına register ediyoruz. 
+
