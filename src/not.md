@@ -388,3 +388,7 @@ internal class CreateProductCommandHandler
                i. ```docker-compose -f docker-compose.yml -f docker-compose.override.yml up -d``` komutu yürütülür
             a. docker-compose projesini startup olarak ayağa kaldırmak.
         i. Bu iki yoldan birini uyguladıktan sonra, debug kısmında projemizin iki farklı container halinde ayağa kalktığını görmeliyiz. API projesi 6060 portunda çalışmalı. (hata alındı, PSQL'in port numaralarını 5433:5432'den 5432:5432 olarak değiştirince hata düzeldi) (clean solution ardından build almak hatalar konusunda etkili)
+
+---
+
+## Basket Service
