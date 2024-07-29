@@ -347,3 +347,44 @@ internal class CreateProductCommandHandler
 
 - Sadece Program.cs tarafını ayarlamamız bu ayarlama için yeterli. Projede DB kritik bir yer tuttuğu için DB odaklı bir kontrol yaptık. Bunu sağlamak için ise AddNpgSql metodundan faydalandık ve connection string'i vererek ilgili DB'yi kontrol etmesini belirttik.
 - Response'u JSON formatında ve daha okunaklı yazması için ise app konfigürasyonlarında options tanımladık ve burada, eklediğimiz UI kütüphanesini kullandık
+
+
+### .NET uygulamasının Dockerize edilmesi
+
+- Şu ana kadarki yaptığımız dockerize işlemleri, sadece servis tarafını kapsıyordu. 
+- Dockerize edilmiş bir DB kaynağından veri akışı sağlıyorduk fakat ayağa kalkan .NET uygulamamız, local olarak ayağa kalkıyordu. Bu durum bizim mikroservislerde hedeflediğimiz yaklaşım değil.
+- .NET uygulaması tarafını da dockerize etmek için şu adımları uyguladık;
+
+    1. Catalog.API projesinde Dockerfile oluşturulması
+        i. Catalog.API projesinde, projeye sağ tıklayıp Add > Docker Support seçeneği ile yeni bir Dockerfile ürettik. 
+        ii. Overwrite olarak ekledik çünkü ilk oluşan Dockerfile'da BuildingBlocks projesine referansımız yoktu.
+          
+    2. Compose işlemi için docker-compose.yaml dosyasını düzenlenmesi
+        i. Şu ana kadar yaptığımız işlem sadece servisi orkestre etmekti lakin artık .NET uygulamasını da(Catalog servisi) compose etmeliyiz. 
+         
+        i. Catalog.API projesine sağ tıklayıp Add > Container Orchestrator Support seçeneğinden devam ettik. Bu adımla birlikte azaten var olan docker-compose projemiz overwrite ediliyor ve servisi compose etmemize yarayacak olan kodlar yeni Dockerfile sayesinde generate ediliyor.
+         
+        i. Dosyada yer alan "catalog.api" field'ında öncelikle ports field'ını düzenledik. 
+              ```   
+               ports:                       ports:
+                  - "8080"       --->          - "6000:8080"
+                  - "8081"                     - "6060:8081"
+              ```
+           İlk port numaraları Docker ortamından erişeceğimiz numaralar, ikinciler ise Docker çevre değişkenleri
+        
+        i. environment field'ına connection string ekledik. ``` - ConnectionStrings__Database=Server=catalogdb;Port=5433;Database=CatalogDb;User Id=postgres;Password=postgres;Include Error Detail=true ``` burada json dosyasındaki string ile aynı olmasına dikkat ediyoruz. Bunu yapmamızın sebebi connection string'i bir çevre değişkeni olarak kullanabilmek ve Catalog.API projesine enjekte etmek. İki tane alt tire ('__') kullanmanın nedeni ise, Docker Compose'un json dosyasındaki hiyerarşik yapıyı düz metin bir çevre değişkenine dönüştürmek
+         
+        i. depends_on field'ını ekledik. 
+            ```    
+           depends_on:
+             - "catalogdb"
+            ``` 
+           Bu sayede aynı ağda yer alan docker compose servisleri olan Catalog.API ve DB, birbiriyle iletişime geçebilecek. Burada container isminin eşleşmesine dikkat edelim. 
+     
+     3. Compose işlemi
+        i. Burada hedefimiz Catalog.API ve CatalogDb container'larının uyumlu ve sağlıklı bir şekilde çalışmasıın sağlamak. Compose uygulamak için iki yolumuz var;
+            a. docker-compose projesinde terminal kullanmak
+               i. Sağ tıklayıp PowerShell başlatılır
+               i. ```docker-compose -f docker-compose.yml -f docker-compose.override.yml up -d``` komutu yürütülür
+            a. docker-compose projesini startup olarak ayağa kaldırmak.
+        i. Bu iki yoldan birini uyguladıktan sonra, debug kısmında projemizin iki farklı container halinde ayağa kalktığını görmeliyiz. API projesi 6060 portunda çalışmalı. (hata alındı, PSQL'in port numaralarını 5433:5432'den 5432:5432 olarak değiştirince hata düzeldi) (clean solution ardından build almak hatalar konusunda etkili)
