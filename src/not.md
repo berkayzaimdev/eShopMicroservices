@@ -393,7 +393,7 @@ internal class CreateProductCommandHandler
 
 ## Basket Service
 
-- Bu servis genel itibariyle kullanılan veritabanı, bileşenler ve mimari olarak **Catalog** servisine benzerlik gösterecektir.
+- Bu servis genel itibariyle kullanılan veritabanı, bileşenler ve mimari olarak **Catalog** servisine benzerlik gösterecektir. (PostgreSQL, Endpoint pattern, CQRS and Mediator, VSA, HealthChecks)
 - Catalog servisindeki bileşenler dışında; gRPC, Redis ve RabbitMQ araçları kullanılacaktır.
 - Tasarım desenlerinde ise **Repository pattern** uygulanacaktır.
 
