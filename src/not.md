@@ -465,7 +465,9 @@ services:
 
     - O yüzden bu işlemi tek bir metoda indirgeyebiliriz. Program.cs tarafında ```builder.Services.Decorate<IBasketRepository, CachedBasketRepository>();``` kodu ile biz şu talimatı veriyoruz; CachedBasketRepository, hem IBasketRepository'i implemente edecek hem de bu interface'ten bir örnek alabilecek.
 
-2. CachedBasketRepository sınıfının oluşturulması
+
+
+1. CachedBasketRepository sınıfının oluşturulması
     ```
 
     public class CachedBasketRepository 
@@ -503,9 +505,7 @@ services:
     - Önceden Program.cs tarafında belirttiğimiz üzere Decorator pattern'i uyguladık. 
     - GetBasket için; Önce basket'in cache'lenip cache'lenmediğini kontrol ediyoruz. Cache'lendiyse direkt dönüş sağlıyoruz. Aksi takdirde ana metodu çağırıyoruz, dönen değeri cache'liyoruz ve dönüş sağlıyoruz.
     - StoreBasket için; Önce ana metodu çağırıyoruz, sonrasında ise dönen değeri cache'liyoruz ve dönüş sağlıyoruz.
-    - Burada ana metotların tekrarı, **Proxy pattern** kullanımı ile ilişkilidir.
-
-2. Redis'in konfigürasyonu
+    - Burada ana metotların tekrarı, **Proxy pattern** kullanımı ile ilişkilidir. </br></br>
     ```
     builder.Services.AddStackExchangeRedisCache(options =>
     {
@@ -513,3 +513,34 @@ services:
     });
     ```
     - Program.cs'te yaptığımız bu konfigürasyon ile IDistrubutedCache interface'inin Redis üzerinden bağlantı kurmasını ve metotları buna göre yürütmesini sağladık. json dosyasına bağlantı adresini ekledik ve builder.Configuration'dan bu adrese eriştik.
+
+
+    
+1. Redis'in Dockerize edilmesi
+    - Redis'i, Docker'a her zamanki gibi docker-compose projesini düzenleyerek ekleyeceğiz.
+    </br></br>
+    1. docker-compose.yml dosyasına Redis için container eklenmesi
+   
+    ```
+    services:
+        .
+        .
+      distributedcache:
+        image: redis
+    ```
+
+    2. docker-compose.override.yml dosyasına, bir önceki adımda eklenen container'ın konfigürasyonunun eklenmesi
+    
+    ```
+    distributedcache:
+      container_name: distributedcache
+      restart: always
+      ports:
+          - "6379:6379"
+    ```
+    3. docker-compose projesinin Startup olarak seçilip ayağa kaldırılması
+      - Bu işlemden sonra Redis container'ı başarılı bir şekilde ayağa kalkmalıdır.
+      - Redis'in çalışıp çalışmadığını test etmek için container'daki *Exec* bölümünde Redis komutları çağırabiliriz.
+
+    
+    
