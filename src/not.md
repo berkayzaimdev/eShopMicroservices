@@ -768,43 +768,43 @@ public class DiscountContext : DbContext
 
 - Basket servisi, Discount servisini tüketmek için bir Client davranışı sergilemelidir.
 
-1. Servislerin Bağlanması
-    1. Basket.API projesinde bulunan _Connected Services_ kısmına gelip _Manage Services_'ı seçiyoruz. 
-    1. File olarak Discount servisinde oluşturmuş olduğumuz ve Server görevi görev .proto dosyasını, type olarak da Client davranışı göstermek istediğimiz için Client'ı seçiyoruz. 
-    1. Bu işlem sonucu Grpc kütüphanesine referans vermiş oluyoruz. Ayrıca dahil etmiş olduğumuz .proto dosyasını tüketecek şekilde Client için olan .proto dosyası otomatik olarak oluşuyor. 
-    1. Build aldıktan sonra Discount servisindeki .proto dosyasında olduğu şekilde, bu serviste de aynı konumda Generated classları görebiliriz.
+### Servislerin Bağlanması
+1. Basket.API projesinde bulunan _Connected Services_ kısmına gelip _Manage Services_'ı seçiyoruz. 
+1. File olarak Discount servisinde oluşturmuş olduğumuz ve Server görevi görev .proto dosyasını, type olarak da Client davranışı göstermek istediğimiz için Client'ı seçiyoruz. 
+1. Bu işlem sonucu Grpc kütüphanesine referans vermiş oluyoruz. Ayrıca dahil etmiş olduğumuz .proto dosyasını tüketecek şekilde Client için olan .proto dosyası otomatik olarak oluşuyor. 
+1. Build aldıktan sonra Discount servisindeki .proto dosyasında olduğu şekilde, bu serviste de aynı konumda Generated classları görebiliriz.
 
-1. gRPC Tüketimi
-    1. Tüketim işleminin uygulanacağı sınıf olan _StoreBasketHandler_'ı refactor etmeye ihtiyacımız var.
-        ```
-        public class StoreBasketCommandHandler
-            (IBasketRepository repository, DiscountProtoService.DiscountProtoServiceClient discountProto)
-            : ICommandHandler<StoreBasketCommand, StoreBasketResult>
+### gRPC Tüketimi
+- Tüketim işleminin uygulanacağı sınıf olan _StoreBasketHandler_'ı refactor etmeye ihtiyacımız var.
+```
+public class StoreBasketCommandHandler
+    (IBasketRepository repository, DiscountProtoService.DiscountProtoServiceClient discountProto)
+    : ICommandHandler<StoreBasketCommand, StoreBasketResult>
+{
+    public async Task<StoreBasketResult> Handle(StoreBasketCommand command, CancellationToken cancellationToken)
+    {
+        await DeductDiscount(command.Cart, cancellationToken);
+
+        await repository.StoreBasket(command.Cart, cancellationToken);
+
+        return new StoreBasketResult(command.Cart.UserName);
+    }
+
+    private async Task DeductDiscount(ShoppingCart cart, CancellationToken cancellationToken)
+    {
+        foreach (var item in cart.Items)
         {
-            public async Task<StoreBasketResult> Handle(StoreBasketCommand command, CancellationToken cancellationToken)
-            {
-                await DeductDiscount(command.Cart, cancellationToken);
-
-                await repository.StoreBasket(command.Cart, cancellationToken);
-
-                return new StoreBasketResult(command.Cart.UserName);
-            }
-
-            private async Task DeductDiscount(ShoppingCart cart, CancellationToken cancellationToken)
-            {
-                foreach (var item in cart.Items)
-                {
-                    var coupon = await discountProto.GetDiscountAsync(new GetDiscountRequest { ProductName = item.ProductName }, cancellationToken: cancellationToken);
-                    item.Price -= coupon.Amount;
-                }
-            }
+            var coupon = await discountProto.GetDiscountAsync(new GetDiscountRequest { ProductName = item.ProductName }, cancellationToken: cancellationToken);
+            item.Price -= coupon.Amount;
         }
-        ```
-        </br></br>
-     1. Constructor'a, build aldıktan sonra Generated olarak oluşan DiscountProtoService'da bulunan DiscountProtoServiceClient sınıfını inject ediyoruz.
-     1. Server'da override ettiğimiz metotları bu şekilde direkt olarak kullanabiliyoruz. Get metodunu kendimiz override etmiştik, burada ekstra bir kod tekrarına gitmedik yazdığımız kodu direkt kullanabildik Client olduğumuz için
+    }
+}
+```
+</br></br>
+1. Constructor'a, build aldıktan sonra Generated olarak oluşan DiscountProtoService'da bulunan DiscountProtoServiceClient sınıfını inject ediyoruz.
+1. Server'da override ettiğimiz metotları bu şekilde direkt olarak kullanabiliyoruz. Get metodunu kendimiz override etmiştik, burada ekstra bir kod tekrarına gitmedik yazdığımız kodu direkt kullanabildik Client olduğumuz için
 
-1. Konfigürasyonların yapılması
+### Konfigürasyonların yapılması
    1. Bu yaptığımız tüketim işlemi tek başına yeterli değil, bu yüzden birtakım yapılandırmalara ihtiyaç duyuyoruz. Proto servisin client olarak görev alabilmesi adına Program.cs'te şu tanımı yapıyoruz;
         ```
         builder.Services.AddGrpcClient<DiscountProtoService.DiscountProtoServiceClient>(options =>
@@ -820,3 +820,20 @@ public class DiscountContext : DbContext
     ```
  
    > henüz bilmemekle beraber tahminim; Server görevi görevek servislerde AddGrpc, Client görevi görecek servislerde ise AddGrpcClient metotlarından faydalanıyoruz
+
+
+### Docker Operasyonları
+- Yaptığımız işleri Docker ortamına da yansıtmamız gerekiyor. Çünkü yeni bir tüketim operasyonu ekledik ve appsettings.json dosyasından eriştiğimiz bağlantıyı Docker'a eklemedik. Basket.API'da yeni bir Dockerfile oluşturmak bir şeyi değiştirmiyor, docker-compose projesini değiştirmemiz gerekiyor.
+
+1. docker-compose.override.yml dosyasında, basket.api'ın environment field'ında gRPC bağlantısını temsil etmesi için şu alanı oluşturuyoruz; (burada container adı yer almalı, https port kullandığımız için de 8081'i seçtik.)
+
+```
+      - GrpcSettings__DiscountUrl=https://discount.grpc:8081
+```
+
+2. Yine basket.api'de depends_on field'ına discount.grpc container'ını ekliyoruz. Çünkü bu container'ın ayakta durması, artık Discount servisine de bağlı;
+```
+      - discount.grpc
+```
+
+3. docker-compose projesini Startup olarak ayağa kaldırıyoruz 
