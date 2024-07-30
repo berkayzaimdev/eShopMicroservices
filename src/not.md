@@ -672,4 +672,35 @@ message DeleteDiscountResponse{
 - option'da csharp_namespace olarak projemizin namespace'ini seçtik yani "Discount.Grpc"
 - package olarak discount seçtik. Servisimiz bu paketi tüketecek o yüzden böyle bir isimlendirmede bulunduk
 - service kısmında tüketilecek bütün servisleri _rpc [servis] [request] returns [response]_ formatında tanımlıyoruz
-- Son olarak request ve response modelleri tanımlıyoruz. Veri tipini doğru seçmek ve verilerin numara sırasını doğru yazmak önem taşıyor
+- Request ve response modelleri tanımlıyoruz. Veri tipini doğru seçmek ve verilerin numara sırasını doğru yazmak önem taşıyor
+- Dosyanın "Properties" kısmında yer alan Build Action ayarını **Protobuf Compiler** olarak seçmeyi de unutmuyoruz. Bu dosya, sadece tüketim için kullanılacağından dolayı, gelen yeni seçenekte de **Server Only**'i işaretliyoruz
+- Sınıfı oluşturduktan ve tüm bu işlemleri uyguladıktan sonra build alıyoruz. Generated sınıflarımızı projedeki tüm dosyalar arasında yer alan obj>Debug>net8.0>Protos klasöründe bulabiliriz
+
+### DiscountService sınıfının oluşturulması
+
+```
+public class DiscountService : DiscountProtoService.DiscountProtoServiceBase
+{
+    public override Task<CouponModel> GetDiscount(GetDiscountRequest request, ServerCallContext context)
+    {
+        return base.GetDiscount(request, context);
+    }
+
+    public override Task<CouponModel> CreateDiscount(CreateDiscountRequest request, ServerCallContext context)
+    {
+        return base.CreateDiscount(request, context);
+    }
+
+    public override Task<CouponModel> UpdateDiscount(UpdateDiscountRequest request, ServerCallContext context)
+    {
+        return base.UpdateDiscount(request, context);
+    }
+
+    public override Task<DeleteDiscountResponse> DeleteDiscount(DeleteDiscountRequest request, ServerCallContext context)
+    {
+        return base.DeleteDiscount(request, context);
+    }
+}
+```
+
+- Oluşturduğumuz sınıfın, .proto dosyasının oluşturulmasının ardından alınan build ile Generated olarak oluşan DiscountProtoService sınıfından kalıtım almasını sağlıyoruz. Bu sayede override'ları uygulayabileceğiz.
