@@ -761,3 +761,10 @@ public class DiscountContext : DbContext
     - Connection string (Server=discountdb)
 
 4. docker-compose projesini ayağa kaldırıyoruz
+
+---
+
+## Basket Servisi Tarafında gRPC Tüketiminin Sağlanması
+
+- Basket servisi, Discount servisini tüketmek için bir Client davranışı sergilemelidir.
+1. İlk safhada, Basket.API projesinde bulunan _Connected Services_ kısmına gelip _Manage Services_'ı seçiyoruz. File olarak Discount servisinde oluşturmuş olduğumuz ve Server görevi görev .proto dosyasını, type olarak da Client davranışı göstermek istediğimiz için Client'ı seçiyoruz. Bu işlem sonucu Grpc kütüphanesine referans vermiş oluyoruz. Ayrıca dahil etmiş olduğumuz .proto dosyasını tüketecek şekilde Client için olan .proto dosyası otomatik olarak oluşuyor. Build aldıktan sonra Discount servisindeki .proto dosyasında olduğu şekilde, bu serviste de aynı konumda Generated classları görebiliriz.
