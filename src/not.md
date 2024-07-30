@@ -708,5 +708,42 @@ public class DiscountService : DiscountProtoService.DiscountProtoServiceBase
 ### DiscountContext sınıfının oluşturulması
 
 ```
+public class DiscountContext : DbContext
+{
+    public DbSet<Coupon> Coupons { get; set; } = default!;
 
+    public DiscountContext(DbContextOptions<DiscountContext> options) : base(options)
+    {
+        
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Coupon>().HasData(
+            new Coupon { Id = 1, ProductName = "IPhone 6", Description = "IPhone description", Amount = 10 },
+            new Coupon { Id = 2, ProductName = "Samsung 10", Description = "Samsung description", Amount = 20 }
+            );
+    }
+}
 ```
+- EF Core ile standart DB oluşturma işleminden hiçbir farkı yok.
+- Fakat yeni bir durum var ki, biz Docker ortamında çalışıyoruz. Yani Package-Manager Console'dan *Add-Migration* ve *Update-Database* komutlarını çağırma şansımız yok. Bu sebepten ötürü, migration işlemini otomatize edeceğiz.
+- Migration işlemini bir metotlar bütünü olarak, extension metotta tanımladık;
+
+    ```
+    public static class Extensions
+    {
+        public static IApplicationBuilder UseMigration(this IApplicationBuilder app)
+        {
+            using var scope = app.ApplicationServices.CreateScope();
+            using var dbContext = scope.ServiceProvider.GetRequiredService<DiscountContext>();
+            dbContext.Database.MigrateAsync();
+
+            return app;
+        }
+    }
+    ```
+    - *CreateScope* servislerin bütününü teşkil eden ApplicationServices'tan bir scope ürettik. Disposable özelliği gösteren bu scope üzerinden, DB servisine erişeceğiz
+    - DiscountContext'ten bir örneği, *GetRequiredService* ile alarak using keyword ile yine bir Disposable özelliğini kullandık
+    - *MigrateAsync* metodu ile migration işlemini tamamlamış olduk
+
