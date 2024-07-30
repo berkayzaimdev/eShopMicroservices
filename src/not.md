@@ -623,4 +623,53 @@ services:
     <li>Parametre olarak Request'in tüm validator'larını IEnumerable şeklinde alıyoruz.</li>
     <li>Request'i sadece ICommand'a eşit olmak üzere belirliyoruz. Çünkü query'lerde validation operasyonuna ihtiyacımız henüz yok.</li>
     </ul>
-- Servisimizi gRPC template'i seçerek oluşturuyoruz.
+
+### .proto Dosyasının oluşturulması
+
+```
+syntax = "proto3";
+
+option csharp_namespace = "Discount.Grpc";
+
+package discount;
+
+service DiscountProtoService{
+	rpc GetDiscount (GetDiscountRequest) returns (CouponModel);
+	rpc CreateDiscount (CreateDiscountRequest) returns (CouponModel);
+	rpc UpdateDiscount (UpdateDiscountRequest) returns (CouponModel);
+	rpc DeleteDiscount (DeleteDiscountRequest) returns (DeleteDiscountResponse);
+}
+
+message GetDiscountRequest {
+	string productName = 1;
+}
+
+message CouponModel{
+	int32 id = 1;
+	string productName = 2;
+	string description = 3;
+	int32 amount = 4;
+}
+
+message CreateDiscountRequest{
+	CouponModel coupon = 1;
+}
+
+message UpdateDiscountRequest{
+	CouponModel coupon = 1;
+}
+
+message DeleteDiscountRequest{
+	string productName = 1;
+}
+
+message DeleteDiscountResponse{
+	bool success = 1;
+}
+```
+
+- syntax olarak proto3 seçtik
+- option'da csharp_namespace olarak projemizin namespace'ini seçtik yani "Discount.Grpc"
+- package olarak discount seçtik. Servisimiz bu paketi tüketecek o yüzden böyle bir isimlendirmede bulunduk
+- service kısmında tüketilecek bütün servisleri _rpc [servis] [request] returns [response]_ formatında tanımlıyoruz
+- Son olarak request ve response modelleri tanımlıyoruz. Veri tipini doğru seçmek ve verilerin numara sırasını doğru yazmak önem taşıyor
