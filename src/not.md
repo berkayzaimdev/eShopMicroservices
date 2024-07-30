@@ -610,3 +610,17 @@ services:
 
     4. docker-compose projesinde Properties kısmında **Service Name** kısmında **basket.api** projemizi seçiyoruz ve docker-compose projesini ayağa kaldırıyoruz
      
+---
+
+## Discount Service
+
+- Bu projede kullanılacak bileşenler; gRPC ile senkron iletişim ve proto dosyaları aracılığıyla CRUD işlemleri, Basket servisi ile kurulacak gRPC ağı, veritabanı tarafında SQLite, veritabanına erişim ve yüksek performanslı işlemler için Entity Framework Core olacaktır. Mimari olarak ise N-Katmanlı Mimari tercih edilmiştir.
+- Servisin ana fikri;
+
+    <ul style="list-style-type:square;">
+    <li>Client sepetine ürün eklediğinde Basket servisi, Discount servisimizi tüketecek ve seçili ürünlerine ait indirimleri getirecek.</li>
+    <li>Basket servisinden yanıt beklenecek, yani senkron bir yapı kullanılacağı için yüksek performansa oldukça özen gösteriyoruz.</li>
+    <li>Parametre olarak Request'in tüm validator'larını IEnumerable şeklinde alıyoruz.</li>
+    <li>Request'i sadece ICommand'a eşit olmak üzere belirliyoruz. Çünkü query'lerde validation operasyonuna ihtiyacımız henüz yok.</li>
+    </ul>
+- Servisimizi gRPC template'i seçerek oluşturuyoruz.
