@@ -748,3 +748,16 @@ public class DiscountContext : DbContext
     - DiscountContext'ten bir örneği, *GetRequiredService* ile alarak using keyword ile yine bir Disposable özelliğini kullandık
     - *MigrateAsync* metodu ile migration işlemini tamamlamış olduk
 
+### Docker Operasyonları
+
+> önceki servislerde olduğu gibi aynı işlemleri yürütüyoruz, sadece SQLite kullandığımız için connection string daha farklı. DB dosyası dahili olduğu için container'a almadık
+
+1. Projemize sağ tıklayıp Add>Docker Support diyoruz ve varolan Dockerfile'ı override ediyoruz.
+
+2. Projeye sağ tıklayıp Add>Container Orchestratator Support diyoruz ve varolan docker-compose.yml ile docker-compose.override.yml dosyalarımız bu sayede güncelleniyor. 
+
+3. docker-compose.override.yml dosyasında şu değişiklik ve eklemelerde bulunuyoruz; 
+    - Projede kullanacağımız port numaraları (ports field'ı)
+    - Connection string (Server=discountdb)
+
+4. docker-compose projesini ayağa kaldırıyoruz
