@@ -515,8 +515,10 @@ services:
     - Program.cs'te yaptığımız bu konfigürasyon ile IDistrubutedCache interface'inin Redis üzerinden bağlantı kurmasını ve metotları buna göre yürütmesini sağladık. json dosyasına bağlantı adresini ekledik ve builder.Configuration'dan bu adrese eriştik.
 
 
-    
-1. Redis'in Dockerize edilmesi
+### Docker Operasyonları
+
+1. Redis'in Orkestrasyonu
+
     - Redis'i, Docker'a her zamanki gibi docker-compose projesini düzenleyerek ekleyeceğiz.
     </br></br>
     1. docker-compose.yml dosyasına Redis için container eklenmesi
@@ -542,5 +544,69 @@ services:
       - Bu işlemden sonra Redis container'ı başarılı bir şekilde ayağa kalkmalıdır.
       - Redis'in çalışıp çalışmadığını test etmek için container'daki *Exec* bölümünde Redis komutları çağırabiliriz.
 
-    
-    
+1. API'ın Orkestrasyonu
+
+    1. Projemize sağ tıklayıp Add>Docker Support diyoruz ve varolan Dockerfile'ı override ediyoruz.
+
+    2. Projeye sağ tıklayıp Add>Container Orchestratator Support diyoruz ve varolan docker-compose.yml ile docker-compose.override.yml dosyalarımız bu sayede güncelleniyor;
+    ```
+    >docker.compose.yml
+
+
+    .
+    .
+    basket.api:
+      image: ${DOCKER_REGISTRY-}basketapi
+      build:
+        context: .
+        dockerfile: Services/Basket/Basket.API/Dockerfile
+    .
+    .    
+    ```
+
+    ```
+    >docker.compose.override.yml
+
+
+    .
+    .
+    basket.api:
+      environment:
+        - ASPNETCORE_ENVIRONMENT=Development
+        - ASPNETCORE_HTTP_PORTS=8080
+        - ASPNETCORE_HTTPS_PORTS=8081
+      ports:
+        - "8080"
+        - "8081"
+      volumes:
+        - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+        - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+    .
+    .    
+    ```
+
+    3. docker-compose.override.yml dosyasında şu değişiklik ve eklemelerde bulunuyoruz;
+        - Projede kullanacağımız port numaraları (ports field'ı)
+        - Connection string (Server=containername)
+        - Bağımlılıklar (depends_on field'ı -> containernames)
+    ```
+    basket.api:
+    environment:
+        - ASPNETCORE_ENVIRONMENT=Development
+        - ASPNETCORE_HTTP_PORTS=8080
+        - ASPNETCORE_HTTPS_PORTS=8081
+        - ConnectionStrings__Database=Server=basketdb;Port=5432;Database=BasketDb;User Id=postgres;Password=postgres;Include Error Detail=true
+        - ConnectionStrings__Redis=distributedcache:6379
+    depends_on:
+        - basketdb
+        - distributedcache
+    ports:
+        - "6001:8080"
+        - "6061:8081"
+    volumes:
+        - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+        - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro   
+    ```
+
+    4. docker-compose projesinde Properties kısmında **Service Name** kısmında **basket.api** projemizi seçiyoruz ve docker-compose projesini ayağa kaldırıyoruz
+     
