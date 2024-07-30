@@ -11,4 +11,12 @@ public class DiscountContext : DbContext
     {
         
     }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Coupon>().HasData(
+            new Coupon { Id = 1, ProductName = "IPhone 6", Description = "IPhone description", Amount = 10 },
+            new Coupon { Id = 2, ProductName = "Samsung 10", Description = "Samsung description", Amount = 20 }
+            );
+    }
 }

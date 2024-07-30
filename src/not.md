@@ -704,3 +704,9 @@ public class DiscountService : DiscountProtoService.DiscountProtoServiceBase
 ```
 
 - Oluşturduğumuz sınıfın, .proto dosyasının oluşturulmasının ardından alınan build ile Generated olarak oluşan DiscountProtoService sınıfından kalıtım almasını sağlıyoruz. Bu sayede override'ları uygulayabileceğiz.
+
+### DiscountContext sınıfının oluşturulması
+
+```
+
+```
