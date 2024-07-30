@@ -436,5 +436,80 @@ services:
     volumes:
       - postgres_basket:/var/lib/postgresql/data/ 
 ```
-
+      
 3. docker-compose projesi ayağa kaldırılır. BasketDb'yi gözlemleyebiliyorsak işlem başarılı demektir. (connection string'in uyumlu olması şarttır)
+
+### Caching Eklenmesi
+
+1. **Scrutor** kütüphanesinin eklenmesi
+    - Bu kütüphane .NET'te built-in olarak bulunan IoC container'ı extension metotları sayesinde güçlendirir ve daha çeşitli eylemleri yapabilir hale getirir. 
+    - Biz Scrutor kütüphanesini, oluşturacağımız CachedBasketRepository üzerinde **Decorator pattern** uygulamak için kullanacağız.</br></br>
+    
+
+      ```
+      builder.Services.AddScoped<IBasketRepository, BasketRepository>();
+      builder.Services.AddScoped<IBasketRepository, CachedBasketRepository>();
+      ```
+    - Bu kullanım uygun olmaz çünkü IoC'ye aynı interface için iki farklı concrete sınıf kaydettik. Böyle bir durumda compiler tarafından; IoC'ye kaydedilen son eklenen sınıf dikkate alınacak, ilk sınıf görmezden gelinecektir.</br></br>
+
+
+      ```
+      builder.Services.AddScoped<IBasketRepository>(provider =>
+      {
+          var basketRepository = provider.GetRequiredService<BasketRepository>();
+          return new CachedBasketRepository(basketRepository, provider.GetRequiredService<IDistributedCache>());
+      });
+      ```
+    - Bu sorunu aynı interface'i tek type olarak verdkten sonra provider üzerinden kayıtlı olan concrete sınıfa erişip, bu sınıfın instance'ını ve IDistributedCache'ten bir örneği alıp CachedBasketRepository'i IoC'ye bu şekilde kaydederek çözebiliriz fakat bu bize bakım zorluğunu ve karmaşıklığı beraberinde getirir.</br></br>
+
+
+    - O yüzden bu işlemi tek bir metoda indirgeyebiliriz. Program.cs tarafında ```builder.Services.Decorate<IBasketRepository, CachedBasketRepository>();``` kodu ile biz şu talimatı veriyoruz; CachedBasketRepository, hem IBasketRepository'i implemente edecek hem de bu interface'ten bir örnek alabilecek.
+
+2. CachedBasketRepository sınıfının oluşturulması
+    ```
+
+    public class CachedBasketRepository 
+        (IBasketRepository repository, IDistributedCache cache)
+        : IBasketRepository
+    {
+        public async Task<ShoppingCart> GetBasket(string userName, CancellationToken cancellationToken = default)
+        {
+            var cachedBasket = await cache.GetStringAsync(userName, cancellationToken);
+            if(!string.IsNullOrEmpty(cachedBasket))
+            {
+                return JsonSerializer.Deserialize<ShoppingCart>(cachedBasket);
+            }
+
+            var basket = await repository.GetBasket(userName, cancellationToken);
+            await cache.SetStringAsync(userName, JsonSerializer.Serialize(basket), cancellationToken);
+            return basket;
+        }
+
+        public async Task<ShoppingCart> StoreBasket(ShoppingCart basket, CancellationToken cancellationToken = default)
+        {
+            await repository.StoreBasket(basket, cancellationToken);
+            await cache.SetStringAsync(basket.UserName, JsonSerializer.Serialize(basket), cancellationToken);
+
+            return basket;
+        }
+
+        public async Task<bool> DeleteBasket(string userName, CancellationToken cancellationToken = default)
+        {
+            return await repository.DeleteBasket(userName, cancellationToken);
+        }
+    }
+
+    ```
+    - Önceden Program.cs tarafında belirttiğimiz üzere Decorator pattern'i uyguladık. 
+    - GetBasket için; Önce basket'in cache'lenip cache'lenmediğini kontrol ediyoruz. Cache'lendiyse direkt dönüş sağlıyoruz. Aksi takdirde ana metodu çağırıyoruz, dönen değeri cache'liyoruz ve dönüş sağlıyoruz.
+    - StoreBasket için; Önce ana metodu çağırıyoruz, sonrasında ise dönen değeri cache'liyoruz ve dönüş sağlıyoruz.
+    - Burada ana metotların tekrarı, **Proxy pattern** kullanımı ile ilişkilidir.
+
+2. Redis'in konfigürasyonu
+    ```
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = builder.Configuration.GetConnectionString("Redis");
+    });
+    ```
+    - Program.cs'te yaptığımız bu konfigürasyon ile IDistrubutedCache interface'inin Redis üzerinden bağlantı kurmasını ve metotları buna göre yürütmesini sağladık. json dosyasına bağlantı adresini ekledik ve builder.Configuration'dan bu adrese eriştik.
