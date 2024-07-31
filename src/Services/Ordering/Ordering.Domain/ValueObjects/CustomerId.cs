@@ -8,7 +8,7 @@ public class CustomerId
         ArgumentNullException.ThrowIfNull(value);
         if(value == Guid.Empty)
         {
-            throw new Exception("CustomerId cannot be empty");
+            throw new DomainException("CustomerId cannot be empty");
         }
 
         return new CustomerId(value);
