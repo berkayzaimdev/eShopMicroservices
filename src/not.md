@@ -850,3 +850,23 @@ public class StoreBasketCommandHandler
 
 1. Tüm katmanları oluşturduktan sonra, proje referanslarını ayarlıyoruz. Domain -> Application -> Infrastructure -> Presentation akışı izleneceği için proje referanslarını buna göre ayarladık. Presentation katmanı, ayrıca Infrastructure referansına da sahip.
 1. Domain hariç gerekli katmanlara DependencyInjection adında birer sınıf oluşturduk. Bu sınıf extension metotlar içerecek olup, her katman için IoC işlemlerini ve gerekli konfigürasyonları gerektiği şekilde yapmayı sağlayacak
+1. Entity'ler üzerinde soyutlama sağlamak için **IEntity** interface'ini oluşturduk;
+
+    ```
+    public interface IEntity<T> : IEntity
+    {
+        public T Id { get; set; }
+    }
+
+    public interface IEntity
+    {
+        public DateTime? CreatedAt { get; set; }
+        public string? CreatedBy { get; set; }
+        public DateTime? LastModified { get; set; }
+        public string? LastModifiedBy { get; set; }
+    }
+    ```
+    - Bu interface sayesinde her entity için geçerli olacak olan property'leri verdik. 
+    - Ayrıca generic tür tanımlayarak Entity tanımında belirteceğimiz tür neyse ona göre Id almasını sağladık.
+
+1. Oluşturduğumuz *IEntity* interface'ini implement edecek, temel bir **Entity** class'ını oluşturduk. Bu sınıfın abstract olmasına dikkat ediyoruz ki, instance'ı oluşturulamasın
