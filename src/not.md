@@ -848,7 +848,7 @@ public class StoreBasketCommandHandler
 - Order, bir **Aggregate Root** olarak ana entity'i teşkil edecektir. Order'a bağlı olarak **Product** ve **Customer** Aggregate'leri de hizmet verecektir.
 - RabbitMQ aracılığıyla event yönetimi sağlanacaktır.
 
-### Class'ların Oluşturulması
+### Base Class ve Interface'lerin Oluşturulması
 
 1. Tüm katmanları oluşturduktan sonra, proje referanslarını ayarlıyoruz. Domain -> Application -> Infrastructure -> Presentation akışı izleneceği için proje referanslarını buna göre ayarladık. Presentation katmanı, ayrıca Infrastructure referansına da sahip.
 1. Domain hariç gerekli katmanlara DependencyInjection adında birer sınıf oluşturduk. Bu sınıf extension metotlar içerecek olup, her katman için IoC işlemlerini ve gerekli konfigürasyonları gerektiği şekilde yapmayı sağlayacak
@@ -921,6 +921,8 @@ public class StoreBasketCommandHandler
     }
     ```
 
+### Order Aggregate'in Oluşturulması
+
 1. İlk Aggregate Root'umuz olan Order'ı oluşturduk. OrderItem'larını, DomainEvent'lerde uyguladığımız yapıya benzer bir şekilde 2 member kullanarak yönettik. Value Object'lerimiz Address ve Payment, enumeration'ımız OrderStatus, otomatik getirdiğimiz property'miz ise TotalPrice olarak karşımıza çıktı.
 
     ```
@@ -942,3 +944,8 @@ public class StoreBasketCommandHandler
 1. Order'a bağımlı olan entity'lerimiz OrderItem, Customer ve Product'u (buraya değineceğiz şimdilik geçiyoruz) oluşturduk.
 1. Order'a bağımlı olan value-object'lerimiz Address ve Payment'ı oluşturduk.
 1. Order'a bağımlı olan enumeration'umuz OrderStatus'ü oluşturduk.
+
+### Strongly-Typed ID kullanımı 
+
+- OrderItem class'ına dikkat edersek, çok sayıda aynı type'a sahip ID kullanılmıştır. Bu durum uzun vadede karşımıza **Primitive Obsession** sorununu ortaya çıkartacaktır. Primitive Obsession: primitive değerlerin direkt olarak kullanımının oluşturabileceği karmaşıklık ve hata potansiyelidir. Örneğin; orderId, customerId, productId parametrelerinin hepsi için Guid kullanmak bu ID'leri karıştırmamıza zemin hazırlar.
+- Bu sorunu çözmek için **Strongly-Typed ID Pattern** uygulayacağız. OrderId, CustomerId ve ProductId gibi değerler, her biri birer type olarak tanımlanacak ve bu type'lardaki *Value* property'si ile de Id'lerin kendisine erişeceğiz.
