@@ -938,3 +938,5 @@ public class StoreBasketCommandHandler
         public decimal TotalPrice => OrderItems.Sum(x => x.Price * x.Quantity);
     }
     ```
+
+1. Order'a bağımlı olan entity'lerimiz olan OrderItem, Customer ve Product'u (buraya değineceğiz şimdilik geçiyoruz) oluşturduk.
