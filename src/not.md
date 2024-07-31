@@ -882,3 +882,39 @@ public class StoreBasketCommandHandler
         public string EventType => GetType().AssemblyQualifiedName;
     }
     ```
+
+1. Aggregate'leri temsil etmesi için generic ve non-generic olmak üzere iki adet interface tanımladık. Her aggregate için geçerli olmasını şart koştuğumuz property ve metotları bu interface'e geçtik. Ardından oluşturduğumuz generic interface'in implementasyonunu oluşturduk. DomainEvent'ları _domainEvents field'ında private olarak tuttuk, bu field'a erişim için ise interface'ten implemente ettiğimiz *DomainEvents* property'sinden faydalandık. *ClearDomainEvents* metodu ile de kuyruktaki tüm event'ları temizleyip bu event'ları bir array halinde döndürdük.
+
+    ```
+    public interface IAggregate<T> : IAggregate, IEntity<T>
+    {
+    }
+
+    public interface IAggregate
+    {
+        IReadOnlyList<IDomainEvent> DomainEvents { get; }
+        IDomainEvent[] ClearDomainEvents();
+    }
+    ```    
+
+    ```
+    public abstract class Aggregate<TId> : Entity<TId>, IAggregate<TId>
+    {
+        private readonly List<IDomainEvent> _domainEvents = [];
+        public IReadOnlyList<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+
+        public void AddDomainEvents(IDomainEvent domainEvent)
+        {
+            _domainEvents.Add(domainEvent);
+        }
+
+        public IDomainEvent[] ClearDomainEvents()
+        {
+            IDomainEvent[] dequeuedEvents = _domainEvents.ToArray();
+
+            _domainEvents.Clear();
+
+            return dequeuedEvents;
+        }
+    }
+    ```
