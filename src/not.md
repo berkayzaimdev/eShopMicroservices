@@ -848,6 +848,8 @@ public class StoreBasketCommandHandler
 - Order, bir **Aggregate Root** olarak ana entity'i teşkil edecektir. Order'a bağlı olarak **Product** ve **Customer** Aggregate'leri de hizmet verecektir.
 - RabbitMQ aracılığıyla event yönetimi sağlanacaktır.
 
+### Class'ların Oluşturulması
+
 1. Tüm katmanları oluşturduktan sonra, proje referanslarını ayarlıyoruz. Domain -> Application -> Infrastructure -> Presentation akışı izleneceği için proje referanslarını buna göre ayarladık. Presentation katmanı, ayrıca Infrastructure referansına da sahip.
 1. Domain hariç gerekli katmanlara DependencyInjection adında birer sınıf oluşturduk. Bu sınıf extension metotlar içerecek olup, her katman için IoC işlemlerini ve gerekli konfigürasyonları gerektiği şekilde yapmayı sağlayacak
 
@@ -916,5 +918,23 @@ public class StoreBasketCommandHandler
 
             return dequeuedEvents;
         }
+    }
+    ```
+
+1. İlk Aggregate Root'umuz olan Order'ı oluşturduk. OrderItem'larını, DomainEvent'lerde uyguladığımız yapıya benzer bir şekilde 2 member kullanarak yönettik. Value Object'lerimiz Address ve Payment, enumeration'ımız OrderStatus, otomatik getirdiğimiz property'miz ise TotalPrice olarak karşımıza çıktı.
+
+    ```
+    public class Order : Aggregate<Guid>
+    {
+        private readonly List<OrderItem> _orderItems = [];
+        public IReadOnlyList<OrderItem> OrderItems => _orderItems.AsReadOnly();
+
+        public Guid CustomerId { get; private set; } = default!;
+        public string OrderName { get; private set; } = default!;
+        public Address ShippingAddress { get; private set; } = default!;
+        public Address BillingAddress { get; private set; } = default!;
+        public Payment Payment { get; private set; } = default!;
+        public OrderStatus Status { get; private set; } = OrderStatus.Pending;
+        public decimal TotalPrice => OrderItems.Sum(x => x.Price * x.Quantity);
     }
     ```
