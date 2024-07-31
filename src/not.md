@@ -837,3 +837,9 @@ public class StoreBasketCommandHandler
 ```
 
 3. docker-compose projesini Startup olarak ayağa kaldırıyoruz 
+
+---
+
+## Ordering Service
+
+- Bu servis, Clean Architecture ve Domain-Driven Design yaklaşımlarını temel alacaktır. Kullanacağımız yapıda Domain, Application, Infrastructure ve Presentation (API) katmanları yer alacaktır. Operasyonlar CQRS pattern üzerinden yürütülecektir. Veri alışverişi ise EF Core üzerinden MSSQL Server'dan yapılacaktır.
