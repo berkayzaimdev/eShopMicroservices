@@ -939,4 +939,6 @@ public class StoreBasketCommandHandler
     }
     ```
 
-1. Order'a bağımlı olan entity'lerimiz olan OrderItem, Customer ve Product'u (buraya değineceğiz şimdilik geçiyoruz) oluşturduk.
+1. Order'a bağımlı olan entity'lerimiz OrderItem, Customer ve Product'u (buraya değineceğiz şimdilik geçiyoruz) oluşturduk.
+1. Order'a bağımlı olan value-object'lerimiz Address ve Payment'ı oluşturduk.
+1. Order'a bağımlı olan enumeration'umuz OrderStatus'ü oluşturduk.
