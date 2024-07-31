@@ -26,7 +26,7 @@ public class Order : Aggregate<OrderId>
             Status = OrderStatus.Pending
         };
 
-        // order.AddDomainEvent(new OrderCreatedEvent(order));
+        order.AddDomainEvent(new OrderCreatedEvent(order));
 
         return order;
     }
@@ -39,7 +39,7 @@ public class Order : Aggregate<OrderId>
         Payment = payment;
         Status = status;
 
-        // AddDomainEvent(new OrderUpdatedEvent(this));
+        AddDomainEvent(new OrderUpdatedEvent(this));
     }
 
     public void Add(ProductId productId, int quantity, decimal price)
@@ -53,7 +53,7 @@ public class Order : Aggregate<OrderId>
 
     public void Remove(ProductId productId)
     {
-        var orderItem = _orderItems.FirstOrDefault(x => x.ProductId == productId);
+        var orderItem = _orderItems.Find(x => x.ProductId == productId);
         if (orderItem is not null)
         {
             _orderItems.Remove(orderItem);

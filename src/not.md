@@ -620,8 +620,6 @@ services:
     <ul style="list-style-type:square;">
     <li>Client sepetine ürün eklediğinde Basket servisi, Discount servisimizi tüketecek ve seçili ürünlerine ait indirimleri getirecek.</li>
     <li>Basket servisinden yanıt beklenecek, yani senkron bir yapı kullanılacağı için yüksek performansa oldukça özen gösteriyoruz.</li>
-    <li>Parametre olarak Request'in tüm validator'larını IEnumerable şeklinde alıyoruz.</li>
-    <li>Request'i sadece ICommand'a eşit olmak üzere belirliyoruz. Çünkü query'lerde validation operasyonuna ihtiyacımız henüz yok.</li>
     </ul>
 
 ### .proto Dosyasının oluşturulması
@@ -947,6 +945,18 @@ public class StoreBasketCommandHandler
 
 ### Strongly-Typed ID kullanımı 
 
-- OrderItem class'ına dikkat edersek, çok sayıda aynı type'a sahip ID kullanılmıştır. Bu durum uzun vadede karşımıza **Primitive Obsession** sorununu ortaya çıkartacaktır. Primitive Obsession: primitive değerlerin direkt olarak kullanımının oluşturabileceği karmaşıklık ve hata potansiyelidir. Örneğin; orderId, customerId, productId parametrelerinin hepsi için Guid kullanmak bu ID'leri karıştırmamıza zemin hazırlar.
+- OrderItem class'ına dikkat edersek, çok sayıda aynı type'a sahip ID kullanılmıştır. Bu durum uzun vadede karşımıza **Primitive Obsession** sorununu ortaya çıkartacaktır. 
+
+  > Primitive Obsession: primitive değerlerin direkt olarak kullanımının oluşturabileceği karmaşıklık ve hata potansiyelidir. Örneğin; orderId, customerId, productId parametrelerinin hepsi için Guid kullanmak bu ID'leri karıştırmamıza zemin hazırlar.
 - Bu sorunu çözmek için **Strongly-Typed ID Pattern** uygulayacağız. OrderId, CustomerId ve ProductId gibi değerler, her biri birer type olarak tanımlanacak ve bu type'lardaki *Value* property'si ile de Id'lerin kendisine erişeceğiz.
 - Buna binaen entity'ler için birer strongly-typed ID tanımladık ve bu ID'leri generic yapıda da Guid yerine seçtik ki, her entity kendine özgü ID'si ile işaretlensin
+
+### Enriching Entities and Value-Objects
+
+- Entityler için *Create* metodu, value-object'lar için de *Of* metodu implemente edildi. Bu sayede bu type'ların new'lenememesi sağlandı ve daha zengin bir type iç-yönetimi sağlandı. Artık nesnelerimiz statik metotlar yardımıyla instance üretebiliyor
+- Order metodu bir Aggregate Root olduğu için daha çeşitli metotlar elde etti. OrderItem eklemesi ve Order güncellemesi gibi işlemler için statik olmayan metotlar tanımlandı
+
+### Domain Event'ların eklenmesi
+
+- Bu event'ları *asynchronous event*'larla karıştırmıyoruz. Buradaki mantık tamamen senkron bir iletişime, aggregate'lerin iç iletişimine dayanıyor.
+- Başlangıç olarak OrderCreatedEvent ve OrderUpdatedEvent class'larımızı tanımladık.
