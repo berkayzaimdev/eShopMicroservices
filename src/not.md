@@ -842,4 +842,8 @@ public class StoreBasketCommandHandler
 
 ## Ordering Service
 
-- Bu servis, Clean Architecture ve Domain-Driven Design yaklaşımlarını temel alacaktır. Kullanacağımız yapıda Domain, Application, Infrastructure ve Presentation (API) katmanları yer alacaktır. Operasyonlar CQRS pattern üzerinden yürütülecektir. Veri alışverişi ise EF Core üzerinden MSSQL Server'dan yapılacaktır.
+- Bu servis, Clean Architecture ve Domain-Driven Design yaklaşımlarını temel alacaktır. 
+- Kullanacağımız yapıda Domain, Application, Infrastructure ve Presentation (API) katmanları yer alacaktır. 
+- Operasyonlar CQRS pattern üzerinden yürütülecektir. Veri alışverişi ise EF Core üzerinden MSSQL Server'dan yapılacaktır
+- Order, bir **Aggregate Root** olarak ana entity'i teşkil edecektir. Order'a bağlı olarak **Product** ve **Customer** Aggregate'leri de hizmet verecektir.
+- RabbitMQ aracılığıyla event yönetimi sağlanacaktır.
