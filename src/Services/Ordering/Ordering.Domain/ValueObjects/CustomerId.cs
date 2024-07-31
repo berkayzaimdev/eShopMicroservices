@@ -1,6 +1,6 @@
 ﻿namespace Ordering.Domain.ValueObjects;
 
-public class AddressId
+public class CustomerId
 {
     public Guid Value { get; }
 }

@@ -949,3 +949,4 @@ public class StoreBasketCommandHandler
 
 - OrderItem class'ına dikkat edersek, çok sayıda aynı type'a sahip ID kullanılmıştır. Bu durum uzun vadede karşımıza **Primitive Obsession** sorununu ortaya çıkartacaktır. Primitive Obsession: primitive değerlerin direkt olarak kullanımının oluşturabileceği karmaşıklık ve hata potansiyelidir. Örneğin; orderId, customerId, productId parametrelerinin hepsi için Guid kullanmak bu ID'leri karıştırmamıza zemin hazırlar.
 - Bu sorunu çözmek için **Strongly-Typed ID Pattern** uygulayacağız. OrderId, CustomerId ve ProductId gibi değerler, her biri birer type olarak tanımlanacak ve bu type'lardaki *Value* property'si ile de Id'lerin kendisine erişeceğiz.
+- Buna binaen entity'ler için birer strongly-typed ID tanımladık ve bu ID'leri generic yapıda da Guid yerine seçtik ki, her entity kendine özgü ID'si ile işaretlensin
