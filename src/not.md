@@ -847,3 +847,6 @@ public class StoreBasketCommandHandler
 - Operasyonlar CQRS pattern üzerinden yürütülecektir. Veri alışverişi ise EF Core üzerinden MSSQL Server'dan yapılacaktır
 - Order, bir **Aggregate Root** olarak ana entity'i teşkil edecektir. Order'a bağlı olarak **Product** ve **Customer** Aggregate'leri de hizmet verecektir.
 - RabbitMQ aracılığıyla event yönetimi sağlanacaktır.
+
+1. Tüm katmanları oluşturduktan sonra, proje referanslarını ayarlıyoruz. Domain -> Application -> Infrastructure -> Presentation akışı izleneceği için proje referanslarını buna göre ayarladık. Presentation katmanı, ayrıca Infrastructure referansına da sahip.
+1. Domain hariç gerekli katmanlara DependencyInjection adında birer sınıf oluşturduk. Bu sınıf extension metotlar içerecek olup, her katman için IoC işlemlerini ve gerekli konfigürasyonları gerektiği şekilde yapmayı sağlayacak
