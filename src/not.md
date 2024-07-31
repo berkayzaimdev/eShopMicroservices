@@ -850,6 +850,7 @@ public class StoreBasketCommandHandler
 
 1. Tüm katmanları oluşturduktan sonra, proje referanslarını ayarlıyoruz. Domain -> Application -> Infrastructure -> Presentation akışı izleneceği için proje referanslarını buna göre ayarladık. Presentation katmanı, ayrıca Infrastructure referansına da sahip.
 1. Domain hariç gerekli katmanlara DependencyInjection adında birer sınıf oluşturduk. Bu sınıf extension metotlar içerecek olup, her katman için IoC işlemlerini ve gerekli konfigürasyonları gerektiği şekilde yapmayı sağlayacak
+
 1. Entity'ler üzerinde soyutlama sağlamak için **IEntity** interface'ini oluşturduk;
 
     ```
@@ -870,3 +871,14 @@ public class StoreBasketCommandHandler
     - Ayrıca generic tür tanımlayarak Entity tanımında belirteceğimiz tür neyse ona göre Id almasını sağladık.
 
 1. Oluşturduğumuz *IEntity* interface'ini implement edecek, temel bir **Entity** class'ını oluşturduk. Bu sınıfın abstract olmasına dikkat ediyoruz ki, instance'ı oluşturulamasın
+
+1. Aggregate'ler üzerinde meydana gelen olayları temsil etmesi için, IDomainEvent interface'ini oluşturduk. Id, ne zaman gerçekleştiği ve event türünü parametre olarak tutuyor. Ayrıca bu interface'e, MediatR tarafından sağlanan *INotification* interface'ini implemente ettik. Bu sayede event dispatching işleminde MediatR'ın metotlarından faydalanabileceğiz. MediatR, Domain katmanına kurulan tek paket olarak kalacak.
+
+    ```
+    public interface IDomainEvent : INotification
+    {
+        Guid EventId => Guid.NewGuid();
+        public DateTime OccuredOn => DateTime.Now;
+        public string EventType => GetType().AssemblyQualifiedName;
+    }
+    ```
