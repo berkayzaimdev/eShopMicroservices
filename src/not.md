@@ -1061,3 +1061,75 @@ public static class DatabaseExtensions
     1. Bu entity, eklenmiş bir entity ise *Created* property'lerini güncelliyoruz.
     1. Eğer eklenmiş entity olmasının yanı sıra güncellenmiş bir entity ise, *LastModified* property'lerini de güncelliyoruz.
     1. Son veya koşulumuz olan *HasChangedOwnedEntities* bize; eğer güncel entity, **Owned** bir entity ise bu entity'in de LastModified değerlerini güncellememize yarıyor. Bunu kolaylık sağlaması adına bir extension metot olarak tanımladık.
+   
+
+#### DB'ye DispatchDomainEventsInterceptor eklenmesi
+
+- Domain'de meydana gelen belirli olaylar neticesinde(sipariş oluşturma, indirim uygulaması vb.) event tetikleyeceğimizi görmüştük. Bu tetiklemeyi, bir önceki adımda yaptığımız gibi bir Interceptor yardımıyla gerçekleştireceğiz. 
+- Ne zaman ki entity belirli olayları tetikleyecek şekilde kaydedildi, işte o zaman interceptor devreye girmelidir. Buradaki yaklaşımımız Best Practice'tir diyebiliriz.
+- Oluşturacağımız interceptor'da yine **SaveChangesInterceptor** class'ından kalıtım alacağız ve aynı metotlarla ilgili olacağız.
+
+    ```
+    public class DispatchDomainEventsInterceptor 
+        (IMediator mediator)
+        : SaveChangesInterceptor
+    {
+        public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
+        {
+            DispatchDomainEvents(eventData.Context).GetAwaiter().GetResult();
+            return base.SavingChanges(eventData, result);
+        }
+
+        public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
+        {
+            await DispatchDomainEvents(eventData.Context);
+            return await base.SavingChangesAsync(eventData, result, cancellationToken);
+        }
+
+        private async Task DispatchDomainEvents(DbContext? context)
+        {
+            if (context == null) return;
+
+            var aggregates = context.ChangeTracker
+                .Entries<IAggregate>()
+                .Where(a => a.Entity.DomainEvents.Any())
+                .Select(a => a.Entity);
+
+            var domainEvents = aggregates
+                .SelectMany(a => a.DomainEvents)
+                .ToList();
+
+            aggregates.ToList().ForEach(a => a.ClearDomainEvents());
+
+            foreach (var domainEvent in domainEvents)
+                await mediator.Publish(domainEvent);
+        }
+    }
+    ```
+
+    1. Öncelikle *DispatchDomainEvents* metoduna gidiş yapıyoruz.
+    1. Tüm aggregate'leri **ChangeTracker API** yardımıyla çekiyoruz, ardından bu aggregate'in herhangi bir domainevent'ı var mı diye kontrol ediyoruz. Şayet varsa bu entity'leri seçiyoruz.
+    1. Ardından tüm DomainEvent'ları *SelectMany* ile tek bir değişkende topluyoruz.
+    1. Tüm aggregate'lerin DomainEvent'larını *Clear* metodu ile temizliyoruz.
+    1. Temizlenmiş olan yani tetiklenen event'ların tetiklenme davranışını *MediatR* yardımıyla uyguladığımız *Publish* metoduyla gerçekleştiriyoruz.
+
+- Yazmış olduğumuz bu interceptor'ı DependencyInjection.cs'ye dahil ederken, daha farklı bir metodoloji uygulayacağız.
+- Bu sınıf, IMediator'den bir örnek aldığı için servis kayıt sırasına bağımlılığımızdan ötürü direkt olarak *AddInterceptors* metodunu kullanamıyoruz.
+
+```
+public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
+{
+    string connectionString = configuration.GetConnectionString("Database")!;
+    services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
+    services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+
+    services.AddDbContext<ApplicationDbContext>((sp, options) =>
+    {
+        options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
+        options.UseSqlServer(connectionString);
+    });
+    return services;
+}
+```
+
+- Servisleri bu şekilde kaydetmemiz gerekiyor. Önce IoC'ye kaydediyoruz, sonra da interceptor olarak ekliyoruz.
