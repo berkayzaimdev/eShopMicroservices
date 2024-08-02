@@ -992,3 +992,15 @@ public static class DatabaseExtensions
     }
 }
 ```
+
+#### DB'de Data Seeding işlemi
+
+- Bir önceki adımda oluşturmuş olduğumuz *InitialiseDatabaseAsync* metodunun en sonunda çağırdığımız *SeedAsync* metodu ile data seeding işlemini gerçekleştiriyoruz. Veri kaynağı olarak Extensions klasöründe oluşturduğumuz **InitialData.cs**'ten faydalandık.
+```
+    private static async Task SeedAsync(ApplicationDbContext context)
+    {
+        await SeedCustomerAsync(context);
+        await SeedProductAsync(context);
+        await SeedOrdersWithItemsAsync(context);
+    }
+```
