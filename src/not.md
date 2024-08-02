@@ -973,5 +973,22 @@ public class StoreBasketCommandHandler
 #### DB'nin orkestrasyonu
 
 1. docker-compose.yml ve docker-compose.override.yml dosyalarına, DB'ye uygun konfigürasyonu sağlayacak şekilde eklemede bulunduk.
-1. docker-compose projesini ayağa kaldırdık
+1. docker-compose projesini ayağa kaldırdık.
 > Çokça hata alındı, MSSQL Windows servisini durdurduktan sonra düzeldi(sonunda)
+
+#### DB'de auto-migrate işlemi
+
+- DiscountDb'de olduğu gibi bir auto-migration operasyonuna ihtiyaç duyuyoruz. Docker'da çalıştığımız için Update-Database gibi komutları kullanamamamız sebebiyle *app* için bir extension metot yazdık ve bu şekilde auto-migration uyguladık.
+```
+public static class DatabaseExtensions
+{
+    public static async Task InitialiseDatabaseAsync(this WebApplication app)
+    {
+        using var scope = app.Services.CreateScope();
+
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        context.Database.MigrateAsync().GetAwaiter().GetResult();
+    }
+}
+```
