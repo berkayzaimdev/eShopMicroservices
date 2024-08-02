@@ -1004,3 +1004,60 @@ public static class DatabaseExtensions
         await SeedOrdersWithItemsAsync(context);
     }
 ```
+
+#### DB'ye AuditableEntityInterceptor eklenmesi
+
+- Entity oluşturduğumuzda ya da güncellediğimizde, ne zaman ve kim tarafından oluştuğu veya güncellendiği bilgisine ihtiyaç duyuyoruz. Bunun için EF Core'da bulunan **Interceptor** özelliğini kullanacağız. 
+- Bu özelliği bir modifikasyon olarak düşünebiliriz. Nasıl ki DbContext'i OnModelCreating gibi metotlarla modifiye ediyoruz, yani modeli oluştururken her zamanki davranışının yanında şunu şunu sergile diyoruz, burada da aynı şekilde **SaveChangesInterceptor** class'ından kalıtım alarak *SavingChanges* ve *SavingChangesAsync* metotlarını modifiye edeceğiz.
+- Burada Save fiili değil, Saving fiiline odaklandığımıza dikkat edelim. Çünkü tam kaydederkenki işleme değil, kayıt sırasındaki işleme ihtiyacımız var.
+
+    ```
+    public class AuditableEntityInterceptor : SaveChangesInterceptor
+    {
+        public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
+        {
+            UpdateEntities(eventData.Context);
+            return base.SavingChanges(eventData, result);
+        }
+
+        public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
+        {
+            UpdateEntities(eventData.Context);
+            return base.SavingChangesAsync(eventData, result, cancellationToken);
+        }
+
+        private void UpdateEntities(DbContext context)
+        {
+            if (context == null) return;
+
+            foreach(var entry in context.ChangeTracker.Entries<IEntity>())
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    entry.Entity.CreatedBy = "berkay";
+                    entry.Entity.CreatedAt = DateTime.UtcNow;
+                }
+
+                if (entry.State == EntityState.Added || entry.State == EntityState.Modified || entry.HasChangedOwnedEntities())
+                {
+                    entry.Entity.LastModifiedBy = "berkay";
+                    entry.Entity.LastModified = DateTime.UtcNow;
+                }
+            }
+        }
+    }
+
+    public static class Extensions
+    {
+        public static bool HasChangedOwnedEntities(this EntityEntry entry) =>
+            entry.References.Any(r =>
+                r.TargetEntry != null &&
+                r.TargetEntry.Metadata.IsOwned() &&
+                (r.TargetEntry.State == EntityState.Added || r.TargetEntry.State == EntityState.Modified));
+    }
+    ```
+
+    1. Öncelikle *UpdateEntities* metoduna giriş yapıyoruz.
+    1. Bu entity, eklenmiş bir entity ise *Created* property'lerini güncelliyoruz.
+    1. Eğer eklenmiş entity olmasının yanı sıra güncellenmiş bir entity ise, *LastModified* property'lerini de güncelliyoruz.
+    1. Son veya koşulumuz olan *HasChangedOwnedEntities* bize; eğer güncel entity, **Owned** bir entity ise bu entity'in de LastModified değerlerini güncellememize yarıyor. Bunu kolaylık sağlaması adına bir extension metot olarak tanımladık.
