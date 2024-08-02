@@ -966,4 +966,12 @@ public class StoreBasketCommandHandler
 
 ### Infrastructure Katmanı
 
-#### 
+#### Konfigürasyonların eklenmesi
+
+- Her bir entity için konfigürasyonlar eklenmiş olup, bu konfigürasyonlar DbContext'te uygulanmıştır.
+
+#### DB'nin orkestrasyonu
+
+1. docker-compose.yml ve docker-compose.override.yml dosyalarına, DB'ye uygun konfigürasyonu sağlayacak şekilde eklemede bulunduk.
+1. docker-compose projesini ayağa kaldırdık
+> Çokça hata alındı, MSSQL Windows servisini durdurduktan sonra düzeldi(sonunda)
