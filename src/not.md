@@ -1133,3 +1133,22 @@ public static IServiceCollection AddInfrastructureServices(this IServiceCollecti
 ```
 
 - Servisleri bu şekilde kaydetmemiz gerekiyor. Önce IoC'ye kaydediyoruz, sonra da interceptor olarak ekliyoruz.
+
+### Application Katmanı
+
+#### Event Sourcing Pattern
+
+- Veriyi etkileyen her işlemi, bir DB'ye kaydetmeyi öneren pattern'dir. Bu işlemlere **event**, event'ların saklandığı DB'ye ise **Event Store** ismi verilir.
+- Verilerin son durumunu DB'ye kaydetmek yerine event'ları kaydederiz. Aksi takdirde bir önceki veriye override olduğu için erişemeyiz. 
+- Event'ların listesine bu yolla erişiliyor olmak, bize ilgili event'ı tekrarlayabilmeyi de sağlar. (replaying event)
+
+#### Eventual Consistency Principle
+
+- CQRS ile Event Sourcing uygulaması, bize Eventual Consistency Principle'ı sağlar.
+- Eventual Consistency, yüksek kullanılabilirliği güçlü tutarlılığa tercih eden sistemlerde sıkça tercih edilir.
+- Sistem belirli bir süre sonra tutarlı hale gelecektir fakat bu tutarlılığın gücü garantilenemez.
+- İki tip tutarlılık seviyesi vardır;
+    - Strict Consistency: Sisteme write uygulanır uygulanmaz, client her zaman son yazılan veriyi alır.
+    - Eventual Consistency: Sisteme write uygulandıktan sonra, değişikliğin yapılması ve client tarafından okunması biraz süre alır.
+
+
