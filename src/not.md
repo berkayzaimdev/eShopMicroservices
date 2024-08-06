@@ -1175,3 +1175,6 @@ public static IServiceCollection AddInfrastructureServices(this IServiceCollecti
 
 > Endpoints, Configuring the exception handler, Adding health checks
 
+## Implementing the Messaging System
+
+- Projemizde servisler arası asenkron iletişim için *RabbitMQ* ve *MassTransit*'ten faydalanacağız.
