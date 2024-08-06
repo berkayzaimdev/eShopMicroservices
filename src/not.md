@@ -1215,7 +1215,7 @@ public record BasketCheckoutEvent : IntegrationEvent
 }
 ```
 
-3. RabbitMQ'yu *appsettings.json* tarafına ekledik. Asenkron iletişimi yalnızca Basket ve Order servislerinde kullanacağımız için, bu servislerde konfigürasyonlarımızı yaptık;
+3. RabbitMQ'yu *appsettings.json* tarafına ekledik. Asenkron iletişimi yalnızca Basket ve Ordering servislerinde kullanacağımız için, bu servislerde konfigürasyonlarımızı yaptık;
 
 ```
   ...
@@ -1258,5 +1258,5 @@ public static IServiceCollection AddMessageBroker
 ```
 
 5. Bu metodu Basket servisinde ```builder.Services.AddMessageBroker(builder.Configuration);``` kodu ile Program.cs tarafında kullandık. 
-> Order'da kullanmamamızın sebebi, bu servisin *Consumer* görevi görecek olmasından dolayıdır. Sadece, Publisher görevi görecek olan Basket servisinde kullandık
+> Ordering'te kullanmamamızın sebebi, bu servisin *Consumer* görevi görecek olmasından dolayıdır. Sadece, Publisher görevi görecek olan Basket servisinde kullandık
 
