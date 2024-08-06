@@ -1302,3 +1302,65 @@ public static IServiceCollection AddMessageBroker
     ```
     - MassTransit kütüphanesinde bulunan IConsumer<> interface'ini implemente ettik. Generic type olarak event'ımızın kendisini verdik. *Bu event'ı consume edecek handler*, gibi de düşünebiliriz.
     - Mesaj olarak aldığımız içerik, Order nesnesini temsil edecek şekilde property'ler bütünü içeriyordu. Bu nesneyi işleyerek bir *Order* haline getirdik ve MediatR'a göndermek üzere bir command nesnesi oluşturup, bu nesneyi ISender.Send metodu aracılığıyla gönderdik.
+
+7. *OrderCreatedEventHandler* class'ını güncelledik;
+    ```
+    public class OrderCreatedEventHandler
+        (IPublishEndpoint publishEndpoint, IFeatureManager featureManager, ILogger<OrderCreatedEventHandler> logger)
+        : INotificationHandler<OrderCreatedEvent>
+    {
+        public async Task Handle(OrderCreatedEvent domainEvent, CancellationToken cancellationToken)
+        {
+            logger.LogInformation("Domain event handled: {DomainEvent}", domainEvent.GetType());
+
+            if(await featureManager.IsEnabledAsync("OrderFullfilment"))
+            {
+                var orderCreatedIntegrationEvent = domainEvent.order.ToOrderDto();
+
+                await publishEndpoint.Publish(orderCreatedIntegrationEvent, cancellationToken);
+            }
+        }
+    }
+    ```
+    - Artık yeni bir event üretmek istediğimiz için, bunu publish etmeliyiz.
+    - IPublishEndpoint interface'ini inject ederek, *Publish* metodunu kullanarak bu Integration Event'ı publish ediyoruz.
+    - Ayrıca, Seeding işlemi esnasında event üretilmemesi adına Feature Management kütüphanesinden yararlanıyoruz. appsettings.json dosyasında bu kontrol için bir alan açarak bunu sağlıyoruz.
+
+### RabbitMQ'nun Orkestrasyonu
+
+1. docker-compose.yml dosyasına RabbitMQ container'ı için gerekli eklemeyi yapıyoruz;
+    ```
+      ...
+
+      messagebroker:
+        image: rabbitmq:management
+
+      ...
+    ```
+
+1. docker-compose.override.yml dosyasına RabbitMQ container için gerekli field'ları ekliyoruz;
+    ```
+      ...
+
+      messagebroker:
+        container_name: messagebroker
+        hostname: ecommerce-mq
+        environment:
+          - RABBITMQ_DEFAULT_USER=guest
+          - RABBITMQ_DEFAULT_PASS=guest
+        restart: always
+        ports:
+          - "5672:5672"
+          - "15672:15672"
+
+      ...
+    ```
+
+1. docker-compose projesini Startup olarak ayağa kaldırıyoruz.
+
+
+### Basket.API ve Ordering.API projelerinin Orkestrasyonu
+
+1. İki projeye de sağ tıklayıp Add>Docker Support seçeneği ile projelerde varolan Dockerfile'ı override ediyoruz.
+1. docker-compose.yml ve docker-compose.override.yml dosyalarında gerekli değişiklikleri yapıyoruz. (connection string, dependson, port gibi ayarlar)
+1. docker-compose projesini Startup olarak ayağa kaldırıyoruz.
