@@ -1173,5 +1173,5 @@ public static IServiceCollection AddInfrastructureServices(this IServiceCollecti
 
 ### API Katmanı
 
-> Endpoints
+> Endpoints, Configuring the exception handler, Adding health checks
 
