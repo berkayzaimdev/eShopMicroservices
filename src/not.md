@@ -1172,3 +1172,6 @@ public static IServiceCollection AddInfrastructureServices(this IServiceCollecti
 > Dto classes, IApplicationDbContext, Commands and Queries, Extensions, Pagination bildiğimiz gibi
 
 ### API Katmanı
+
+> Endpoints
+
