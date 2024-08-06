@@ -1178,3 +1178,85 @@ public static IServiceCollection AddInfrastructureServices(this IServiceCollecti
 ## Implementing the Messaging System
 
 - Projemizde servisler arası asenkron iletişim için *RabbitMQ* ve *MassTransit*'ten faydalanacağız.
+
+1. IntegrationEvent adında base bir class tanımladık. Bu class, tüm event'larda ortak olan property'leri içeriyor;
+```
+public record IntegrationEvent
+{
+    public Guid Id => Guid.NewGuid();
+    public DateTime OccurredOn => DateTime.Now;
+    public string EventType => GetType().AssemblyQualifiedName;
+}
+```
+
+2. Sepetteki ürünlerin sipariş olarak tamamlanması işlemini betimleyen BasketCheckoutEvent'ı oluşturduk;
+```
+public record BasketCheckoutEvent : IntegrationEvent
+{
+    public string UserName { get; set; } = default!;
+    public Guid CustomerId { get; set; } = default!;
+    public decimal TotalPrice { get; set; } = default!;
+
+    // Shipping and BillingAddress
+    public string FirstName { get; set; } = default!;
+    public string LastName { get; set; } = default!;
+    public string EmailAddress { get; set; } = default!;
+    public string AddressLine { get; set; } = default!;
+    public string Country { get; set; } = default!;
+    public string State { get; set; } = default!;
+    public string ZipCode { get; set; } = default!;
+
+    // Payment
+    public string CardName { get; set; } = default!;
+    public string CardNumber { get; set; } = default!;
+    public string Expiration { get; set; } = default!;
+    public string CVV { get; set; } = default!;
+    public int PaymentMethod { get; set; } = default!;
+}
+```
+
+3. RabbitMQ'yu *appsettings.json* tarafına ekledik. Asenkron iletişimi yalnızca Basket ve Order servislerinde kullanacağımız için, bu servislerde konfigürasyonlarımızı yaptık;
+
+```
+  ...
+
+  "MessageBroker": {
+    "Host": "amqp://localhost:5672",
+    "UserName": "guest",
+    "Password": "guest"
+  },
+
+  ...
+```
+
+4. Bu konfigürasyonu kullanabilmemiz için MassTransit'i eklememizi sağlayacak olan extension metodu, Extensions sınıfı altında oluşturduk;
+
+```
+public static IServiceCollection AddMessageBroker
+    (this IServiceCollection services, IConfiguration configuration, Assembly? assembly = null)
+{
+    services.AddMassTransit(config =>
+    {
+        config.SetKebabCaseEndpointNameFormatter();
+
+        if (assembly != null)
+            config.AddConsumers(assembly);
+
+        config.UsingRabbitMq((context, configurator) =>
+        {
+            configurator.Host(new Uri(configuration["MessageBroker:Host"]!), host =>
+            {
+                host.Username(configuration["MessageBroker:UserName"]!);
+                host.Password(configuration["MessageBroker:Password"]!);
+            });
+            configurator.ConfigureEndpoints(context);
+        });
+    });
+
+    return services;
+}
+```
+
+5. Bu metodu Basket servisinde ```builder.Services.AddMessageBroker(builder.Configuration);``` kodu ile Program.cs tarafında kullandık. 
+> Order'da kullanmamamızın sebebi, bu servisin *Consumer* görevi görecek olmasından dolayıdır. Sadece, Publisher görevi görecek olan Basket servisinde kullandık
+
