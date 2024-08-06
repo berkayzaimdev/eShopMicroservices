@@ -1154,3 +1154,21 @@ public static IServiceCollection AddInfrastructureServices(this IServiceCollecti
 #### Event Handling
 
 - Infrastructure katmanında, MediatR kütüphanesinin *Publish* metodunu kullanmıştık. Publish metodu neticesinde, nereye publish ediliyor?, sorusunun cevabı için Application katmanında Order'a ait **EventHandler** sınıfları oluşturacağız.
+
+    ```
+    public class OrderCreatedEventHandler
+        (ILogger<OrderCreatedEventHandler> logger)
+        : INotificationHandler<OrderCreatedEvent>
+    {
+        public Task Handle(OrderCreatedEvent notification, CancellationToken cancellationToken)
+        {
+            logger.LogInformation("Domain event handled: {DomainEvent}", notification.GetType());
+            return Task.CompletedTask;
+        }
+    }
+    ```
+    - **INotificationHandler** interface'inden faydalanarak, *Publish* ettiğimiz event'ı bu sınıf tarafından tüketilebilir hale getirdik.
+
+> Dto classes, IApplicationDbContext, Commands and Queries, Extensions, Pagination bildiğimiz gibi
+
+### API Katmanı
