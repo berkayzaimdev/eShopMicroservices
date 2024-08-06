@@ -1257,6 +1257,5 @@ public static IServiceCollection AddMessageBroker
 }
 ```
 
-5. Bu metodu Basket servisinde ```builder.Services.AddMessageBroker(builder.Configuration);``` kodu ile Program.cs tarafında kullandık. 
-> Ordering'te kullanmamamızın sebebi, bu servisin *Consumer* görevi görecek olmasından dolayıdır. Sadece, Publisher görevi görecek olan Basket servisinde kullandık
+5. Bu metodu Basket ve Ordering servislerinde Program.cs tarafında uyguladık. Consumer olan serviste *Assembly* objesi kullandık.
 
