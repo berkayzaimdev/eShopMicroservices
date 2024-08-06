@@ -1151,4 +1151,6 @@ public static IServiceCollection AddInfrastructureServices(this IServiceCollecti
     - Strict Consistency: Sisteme write uygulanır uygulanmaz, client her zaman son yazılan veriyi alır.
     - Eventual Consistency: Sisteme write uygulandıktan sonra, değişikliğin yapılması ve client tarafından okunması biraz süre alır.
 
+#### Event Handling
 
+- Infrastructure katmanında, MediatR kütüphanesinin *Publish* metodunu kullanmıştık. Publish metodu neticesinde, nereye publish ediliyor?, sorusunun cevabı için Application katmanında Order'a ait **EventHandler** sınıfları oluşturacağız.
