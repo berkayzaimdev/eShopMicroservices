@@ -62,7 +62,7 @@
    1. Bulunduğumuz bash'te ```psql -U postgres``` komutunu çağırarak PostgreSQL'e has olan shell script'e ulaştık.
    1. ```\l``` ile tüm db'leri listeleriz.
 
-   | Name      | Owner    | Encoding | Locale Provider | Collate    | Ctype      | ICU Locale | ICU Rules | Access privileges |
+| Name      | Owner    | Encoding | Locale Provider | Collate    | Ctype      | ICU Locale | ICU Rules | Access privileges |
 |-----------|----------|----------|-----------------|------------|------------|------------|-----------|-------------------|
 | CatalogDb | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |                   |
 | postgres  | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |                   |
@@ -436,7 +436,8 @@ services:
     volumes:
       - postgres_basket:/var/lib/postgresql/data/ 
 ```
-      
+
+      
 3. docker-compose projesi ayağa kaldırılır. BasketDb'yi gözlemleyebiliyorsak işlem başarılı demektir. (connection string'in uyumlu olması şarttır)
 
 ### Caching Eklenmesi
